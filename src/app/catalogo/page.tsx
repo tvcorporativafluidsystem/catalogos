@@ -85,7 +85,7 @@ export default function CatalogoPage() {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans antialiased text-slate-900">
       
-      {/* HEADER MOBILE (Para a logo e botão de filtro no celular) */}
+      {/* HEADER MOBILE */}
       <header className={`lg:hidden sticky top-0 z-[60] flex items-center justify-between p-4 shadow-xl ${temaAtivo.sidebarBg}`}>
         <div className="h-10 w-32 bg-white rounded-xl p-1.5 shadow-inner flex items-center justify-center">
           <img src={temaAtivo.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
@@ -113,27 +113,49 @@ export default function CatalogoPage() {
         <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar pb-10">
           <div>
             <label className="text-[10px] font-black text-white/40 uppercase mb-3 block">Fabricante</label>
-            <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl">
+            <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/10">
               <button onClick={() => { setMarca('URBA'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'URBA' ? 'bg-[#00A8CC] text-white shadow-lg' : 'text-white/40'}`}>URBA</button>
               <button onClick={() => { setMarca('BROSOL'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'BROSOL' ? 'bg-[#FFD700] text-[#2B3990] shadow-lg' : 'text-white/40'}`}>BROSOL</button>
             </div>
           </div>
 
+          {/* PESQUISA GERAL */}
           <div className="relative">
-            <div className="flex justify-between items-center mb-2"><label className="text-[10px] font-black uppercase ml-1" style={{ color: temaAtivo.accentColor }}>Pesquisa Geral</label>{buscaGeral && <button onClick={() => limparFiltroIndividual('geral')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}</div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[10px] font-black uppercase ml-1" style={{ color: temaAtivo.accentColor }}>Pesquisa Geral</label>
+              {buscaGeral && <button onClick={() => limparFiltroIndividual('geral')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
+            </div>
             <input value={buscaGeral} onChange={(e) => setBuscaGeral(e.target.value)} placeholder="O que busca?" className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
           </div>
 
+          {/* CÓDIGO */}
           <div className="relative">
-            <div className="flex justify-between items-center mb-2"><label className="text-[10px] font-black text-white/40 uppercase ml-1">Código</label>{busca && <button onClick={() => limparFiltroIndividual('codigo')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}</div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[10px] font-black text-white/40 uppercase ml-1">Código</label>
+              {busca && <button onClick={() => limparFiltroIndividual('codigo')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
+            </div>
             <input list="list-codigos" value={busca} onChange={(e) => setBusca(e.target.value.toUpperCase())} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
             <datalist id="list-codigos">{opcoesFiltros.codigos.map(c => <option key={c} value={c} />)}</datalist>
           </div>
 
+          {/* VEÍCULO */}
           <div className="relative">
-            <div className="flex justify-between items-center mb-2"><label className="text-[10px] font-black text-white/40 uppercase ml-1">Veículo</label>{filtrosSelecionados['Veículos'] && <button onClick={() => limparFiltroIndividual('Veículos')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}</div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[10px] font-black text-white/40 uppercase ml-1">Veículo / Aplicação</label>
+              {filtrosSelecionados['Veículos'] && <button onClick={() => limparFiltroIndividual('Veículos')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
+            </div>
             <input list="list-veiculos" value={filtrosSelecionados['Veículos'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Veículos': e.target.value})} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
             <datalist id="list-veiculos">{opcoesFiltros.veiculos.map(v => <option key={v} value={v} />)}</datalist>
+          </div>
+
+          {/* LINHA (GRUPO) */}
+          <div className="relative">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[10px] font-black text-white/40 uppercase ml-1">Linha (Grupo)</label>
+              {filtrosSelecionados['Grupo'] && <button onClick={() => limparFiltroIndividual('Grupo')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
+            </div>
+            <input list="list-grupos" value={filtrosSelecionados['Grupo'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Grupo': e.target.value})} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+            <datalist id="list-grupos">{opcoesFiltros.grupos.map(g => <option key={g} value={g} />)}</datalist>
           </div>
         </div>
       </aside>
@@ -185,18 +207,33 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
   useEffect(() => {
     let montado = true;
     const cod = produto.codigo_produto.toLowerCase();
-    const carregar = async () => {
+    const cacheKey = `${marca}-${cod}`;
+
+    if (globalImageCache.has(cacheKey)) {
+      const cached = globalImageCache.get(cacheKey)!;
+      setFotos(cached);
+      setFotoAtiva(cached[0]);
+      setLoadingGaleria(false);
+      return;
+    }
+
+    const verificarFotos = async () => {
       const sufixos = ['', '_a', '_b', '_c', '_d'];
       const caminhos = sufixos.map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
-      const checagens = await Promise.all(caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null)));
+      const checagens = await Promise.all(
+        caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null))
+      );
       if (!montado) return;
-      const encontradas = checagens.filter((u): u is string => u !== null);
-      const res = encontradas.length > 0 ? encontradas : ['https://via.placeholder.com/400x300?text=Sem+Imagem'];
-      setFotos(res);
-      setFotoAtiva(res[0]);
+      const encontradas = checagens.filter((url): url is string => url !== null);
+      const resultadoFinal = encontradas.length > 0 ? encontradas : ['https://via.placeholder.com/400x300?text=Sem+Imagem'];
+      
+      globalImageCache.set(cacheKey, resultadoFinal);
+      setFotos(resultadoFinal);
+      setFotoAtiva(resultadoFinal[0]);
       setLoadingGaleria(false);
     };
-    carregar();
+
+    verificarFotos();
     return () => { montado = false; };
   }, [produto]);
 

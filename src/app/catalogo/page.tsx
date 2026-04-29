@@ -15,7 +15,10 @@ export default function CatalogoPage() {
   const [produtoSelecionado, setProdutoSelecionado] = useState<any>(null);
   
   const { produtos, loading, buscar } = useCatalog(marca);
-  const STORAGE_URL = `https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images`;
+
+  // Variáveis de ambiente configuradas na Vercel (NEXT_PUBLIC_...)
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://agygfdeizpfcdzxpukpx.supabase.co';
+  const STORAGE_URL = `${SUPABASE_URL}/storage/v1/object/public/catalog-images`;
 
   // --- CONFIGURAÇÃO DE IDENTIDADE VISUAL ---
   const temas = {
@@ -82,12 +85,17 @@ export default function CatalogoPage() {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans antialiased text-slate-900">
       
-      {/* HEADER MOBILE (Para a logo aparecer no celular) */}
+      {/* HEADER MOBILE (Para a logo e botão de filtro no celular) */}
       <header className={`lg:hidden sticky top-0 z-[60] flex items-center justify-between p-4 shadow-xl ${temaAtivo.sidebarBg}`}>
         <div className="h-10 w-32 bg-white rounded-xl p-1.5 shadow-inner flex items-center justify-center">
           <img src={temaAtivo.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
         </div>
-        <button onClick={() => setMenuAberto(true)} className="px-4 py-2 rounded-xl bg-white/10 text-white font-black text-[10px] uppercase border border-white/20">Filtros</button>
+        <button 
+          onClick={() => setMenuAberto(true)}
+          className="px-4 py-2 rounded-xl bg-white/10 text-white font-black text-[10px] uppercase border border-white/20"
+        >
+          Filtros
+        </button>
       </header>
 
       {menuAberto && <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] lg:hidden" onClick={() => setMenuAberto(false)} />}
@@ -96,7 +104,7 @@ export default function CatalogoPage() {
         
         <div className="mb-10 w-full px-2 hidden lg:block"> 
           <div className="bg-white rounded-2xl shadow-inner flex items-center justify-center w-full h-32 p-4 overflow-hidden border-2 border-white/10">
-             <img src={temaAtivo.logoUrl} alt={`Logo ${marca}`} className="max-w-full max-h-full w-full h-full object-contain" onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/200x100?text=Sem+Logo'; }} />
+             <img src={temaAtivo.logoUrl} alt={`Logo ${marca}`} className="max-w-full max-h-full object-contain" onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/200x100?text=Sem+Logo'; }} />
           </div>
         </div>
 
@@ -105,7 +113,7 @@ export default function CatalogoPage() {
         <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar pb-10">
           <div>
             <label className="text-[10px] font-black text-white/40 uppercase mb-3 block">Fabricante</label>
-            <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/10">
+            <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl">
               <button onClick={() => { setMarca('URBA'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'URBA' ? 'bg-[#00A8CC] text-white shadow-lg' : 'text-white/40'}`}>URBA</button>
               <button onClick={() => { setMarca('BROSOL'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'BROSOL' ? 'bg-[#FFD700] text-[#2B3990] shadow-lg' : 'text-white/40'}`}>BROSOL</button>
             </div>
@@ -123,15 +131,9 @@ export default function CatalogoPage() {
           </div>
 
           <div className="relative">
-            <div className="flex justify-between items-center mb-2"><label className="text-[10px] font-black text-white/40 uppercase ml-1">Veículo / Aplicação</label>{filtrosSelecionados['Veículos'] && <button onClick={() => limparFiltroIndividual('Veículos')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}</div>
+            <div className="flex justify-between items-center mb-2"><label className="text-[10px] font-black text-white/40 uppercase ml-1">Veículo</label>{filtrosSelecionados['Veículos'] && <button onClick={() => limparFiltroIndividual('Veículos')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}</div>
             <input list="list-veiculos" value={filtrosSelecionados['Veículos'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Veículos': e.target.value})} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
             <datalist id="list-veiculos">{opcoesFiltros.veiculos.map(v => <option key={v} value={v} />)}</datalist>
-          </div>
-
-          <div className="relative">
-            <div className="flex justify-between items-center mb-2"><label className="text-[10px] font-black text-white/40 uppercase ml-1">Linha (Grupo)</label>{filtrosSelecionados['Grupo'] && <button onClick={() => limparFiltroIndividual('Grupo')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}</div>
-            <input list="list-grupos" value={filtrosSelecionados['Grupo'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Grupo': e.target.value})} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
-            <datalist id="list-grupos">{opcoesFiltros.grupos.map(g => <option key={g} value={g} />)}</datalist>
           </div>
         </div>
       </aside>
@@ -183,33 +185,18 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
   useEffect(() => {
     let montado = true;
     const cod = produto.codigo_produto.toLowerCase();
-    const cacheKey = `${marca}-${cod}`;
-
-    if (globalImageCache.has(cacheKey)) {
-      const cached = globalImageCache.get(cacheKey)!;
-      setFotos(cached);
-      setFotoAtiva(cached[0]);
-      setLoadingGaleria(false);
-      return;
-    }
-
-    const verificarFotos = async () => {
+    const carregar = async () => {
       const sufixos = ['', '_a', '_b', '_c', '_d'];
       const caminhos = sufixos.map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
-      const checagens = await Promise.all(
-        caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null))
-      );
+      const checagens = await Promise.all(caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null)));
       if (!montado) return;
-      const encontradas = checagens.filter((url): url is string => url !== null);
-      const resultadoFinal = encontradas.length > 0 ? encontradas : ['https://via.placeholder.com/400x300?text=Sem+Imagem'];
-      
-      globalImageCache.set(cacheKey, resultadoFinal);
-      setFotos(resultadoFinal);
-      setFotoAtiva(resultadoFinal[0]);
+      const encontradas = checagens.filter((u): u is string => u !== null);
+      const res = encontradas.length > 0 ? encontradas : ['https://via.placeholder.com/400x300?text=Sem+Imagem'];
+      setFotos(res);
+      setFotoAtiva(res[0]);
       setLoadingGaleria(false);
     };
-
-    verificarFotos();
+    carregar();
     return () => { montado = false; };
   }, [produto]);
 
@@ -217,7 +204,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 lg:p-8">
       <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md" onClick={onClose}></div>
       <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row animate-in zoom-in-95 duration-300 border border-slate-100">
-        <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all text-slate-900">✕</button>
+        <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all text-slate-900 flex items-center justify-center">✕</button>
 
         <div className="lg:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center min-h-[400px] text-slate-900 relative">
           {loadingGaleria ? (

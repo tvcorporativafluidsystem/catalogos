@@ -93,8 +93,8 @@ export default function CatalogoPage() {
       
       {/* HEADER MOBILE */}
       <header className={`lg:hidden sticky top-0 z-[60] flex items-center justify-between p-4 shadow-xl ${temaAtivo.sidebarBg}`}>
-        <div className="h-10 w-32 bg-white rounded-xl overflow-hidden flex items-center justify-center">
-          <img src={temaAtivo.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+        <div className="h-10 w-32 bg-white rounded-xl flex items-center justify-center overflow-hidden p-1">
+          <img src={temaAtivo.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
         </div>
         <button onClick={() => setMenuAberto(true)} className="px-4 py-2 rounded-xl bg-white/10 text-white font-black text-[10px] uppercase border border-white/20">Filtros</button>
       </header>
@@ -103,13 +103,13 @@ export default function CatalogoPage() {
 
       <aside className={`fixed lg:sticky top-0 z-[80] w-80 shadow-2xl h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         
-        {/* LOGO - CORREÇÃO DEFINITIVA PARA IMAGEM 800x400 */}
+        {/* LOGO - CORREÇÃO DEFINITIVA CONTRA IMAGENS ESTICADAS */}
         <div className="mb-10 w-full hidden lg:block"> 
-          <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 w-full aspect-[2/1] flex items-center justify-center">
+          <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 w-full h-[140px] flex items-center justify-center p-4">
              <img 
               src={temaAtivo.logoUrl} 
               alt={`Logo ${marca}`} 
-              className="w-full h-full object-cover" 
+              className="max-w-full max-h-full object-contain" 
               onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/800x400?text=Sem+Logo'; }} 
              />
           </div>
@@ -246,14 +246,14 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
   }, [produto, marca, storageUrl]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 lg:p-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 lg:p-8 text-slate-900">
       <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md" onClick={onClose}></div>
-      <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row animate-in zoom-in-95 duration-300 border border-slate-100 text-slate-900">
-        <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all text-slate-900 flex items-center justify-center">✕</button>
-        <div className="lg:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center min-h-[400px] text-slate-900 relative">
+      <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row animate-in zoom-in-95 duration-300 border border-slate-100">
+        <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">✕</button>
+        <div className="lg:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center min-h-[400px] relative text-slate-900">
           {loadingGaleria ? <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: temaAtivo.accentColor }}></div> : (
             <>
-              <div className="flex-1 flex items-center justify-center w-full"><img src={fotoAtiva} className="max-h-[450px] max-w-full object-contain drop-shadow-2xl animate-in fade-in duration-500" /></div>
+              <div className="flex-1 flex items-center justify-center w-full text-slate-900"><img src={fotoAtiva} className="max-h-[450px] max-w-full object-contain drop-shadow-2xl animate-in fade-in duration-500" /></div>
               {fotos.length > 1 && (
                 <div className="flex gap-3 mt-6 p-2 overflow-x-auto max-w-full custom-scrollbar">
                   {fotos.map((url, i) => (
@@ -264,8 +264,8 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
             </>
           )}
         </div>
-        <div className="lg:w-1/2 p-10 lg:p-14 overflow-y-auto bg-white flex flex-col flex-1 text-slate-900">
-          <div className="mb-10 text-slate-900"><span className="font-black text-xs tracking-widest uppercase mb-2 block" style={{ color: temaAtivo.accentColor }}>{marca}</span><h2 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">{produto.codigo_produto}</h2></div>
+        <div className="lg:w-1/2 p-10 lg:p-14 overflow-y-auto bg-white flex flex-col flex-1">
+          <div className="mb-10 text-slate-900"><span className="font-black text-xs tracking-widest uppercase mb-2 block" style={{ color: temaAtivo.accentColor }}>{marca}</span><h2 className="text-5xl font-black tracking-tighter uppercase leading-none">{produto.codigo_produto}</h2></div>
           <div className="space-y-6 flex-1 text-slate-900">
             {Object.entries(produto.dados).map(([key, value]) => (
               value && !['id', 'Arquivo Foto', 'codigo_produto', 'Descrição Produto', 'Lançamento'].includes(key) && (

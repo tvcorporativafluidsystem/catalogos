@@ -45,15 +45,6 @@ export default function AppContainer() {
           <p className="text-[#00A8CC] text-4xl md:text-6xl lg:text-7xl font-black italic tracking-widest leading-none drop-shadow-[0_0_15px_rgba(0,168,204,0.3)]">
             2026
           </p>
-          
-          {isAdmin && (
-            <button 
-              onClick={() => router.push('/importar')} 
-              className="mt-10 px-8 py-4 bg-green-500 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-green-600 transition-all shadow-2xl animate-bounce leading-none"
-            >
-              ⚙️ Abrir Painel de Controle
-            </button>
-          )}
         </div>
 
         <div className="flex flex-col md:flex-row gap-6 md:gap-10 max-w-6xl w-full justify-center items-center px-4 z-10">
@@ -71,6 +62,20 @@ export default function AppContainer() {
             <p className="text-center text-white/20 text-[10px] font-bold uppercase tracking-[0.5em] mt-5 md:mt-6 group-hover:text-[#FFD700] leading-none italic transition-colors">Entrar Brosol</p>
           </div>
         </div>
+
+        {showLoginModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+            <div className="bg-[#1e293b] border border-white/10 p-10 rounded-[2.5rem] w-full max-w-md shadow-2xl">
+              <h2 className="text-white font-black text-2xl mb-6 uppercase tracking-tighter text-center">Autenticação</h2>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <input name="user" required placeholder="Usuário" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-[#00A8CC]" />
+                <input name="pass" type="password" required placeholder="Senha" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-[#00A8CC]" />
+                <button type="submit" className="w-full bg-[#00A8CC] text-white font-black py-4 rounded-2xl hover:brightness-110 transition-all uppercase tracking-widest text-sm">Entrar</button>
+                <button type="button" onClick={() => setShowLoginModal(false)} className="w-full text-white/30 text-[10px] font-black uppercase mt-4 text-center">Cancelar</button>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     );
   }
@@ -90,26 +95,39 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout }: any) {
   const STORAGE_URL = `https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images`;
 
   const temas = {
-    URBA: { sidebarBg: 'bg-slate-950', accentColor: '#00A8CC', buttonBg: 'bg-[#00A8CC]', logoUrl: `${STORAGE_URL}/logos/urba_logo.png`, badge: 'bg-[#00A8CC] text-white' },
-    BROSOL: { sidebarBg: 'bg-[#2B3990]', accentColor: '#FFD700', buttonBg: 'bg-[#FFD700]', logoUrl: `${STORAGE_URL}/logos/brosol_logo.png`, badge: 'bg-[#FFD700] text-[#2B3990]' }
+    URBA: { sidebarBg: 'bg-slate-950', accentColor: '#00A8CC', logoUrl: `${STORAGE_URL}/logos/urba_logo.png`, badge: 'bg-[#00A8CC] text-white' },
+    BROSOL: { sidebarBg: 'bg-[#2B3990]', accentColor: '#FFD700', logoUrl: `${STORAGE_URL}/logos/brosol_logo.png`, badge: 'bg-[#FFD700] text-[#2B3990]' }
   };
 
   const temaAtivo = temas[marca];
 
-  // PESQUISA GERAL LOCAL EM TODOS OS DADOS
+  // LOGICA DE FILTRAGEM CORRIGIDA PARA NÃO ESCONDER NADA SEM BUSCA
   const produtosExibidos = useMemo(() => {
     return produtos.filter(p => {
+      // Se não tem nada digitado na busca geral, passa pelo filtro
       if (!buscaGeral) return true;
+      
       const termo = buscaGeral.toLowerCase().trim();
       const todosOsDados = Object.values(p.dados).map(v => String(v).toLowerCase()).join(' ');
       const codigo = (p.codigo_produto || "").toLowerCase();
+      
       return codigo.includes(termo) || todosOsDados.includes(termo);
     });
   }, [produtos, buscaGeral]);
 
+  // RESET TOTAL AO TROCAR DE MARCA
   useEffect(() => { 
-    buscar(busca, filtrosSelecionados, ""); 
-  }, [marca, busca, filtrosSelecionados]);
+    setBusca('');
+    setBuscaGeral('');
+    setFiltrosSelecionados({});
+    buscar("", {}, ""); 
+  }, [marca]);
+
+  useEffect(() => {
+    if (busca || Object.keys(filtrosSelecionados).length > 0) {
+      buscar(busca, filtrosSelecionados, "");
+    }
+  }, [busca, filtrosSelecionados]);
 
   const limparFiltroIndividual = (chave: string) => {
     if (chave === 'codigo') setBusca('');
@@ -129,25 +147,29 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout }: any) {
         });
       }
     });
-    return { codigos: Array.from(codigos).sort(), grupos: Array.from(grupos).sort(), veiculos: Array.from(veiculosSet).sort() };
+    return { 
+      codigos: Array.from(codigos).sort(), 
+      grupos: Array.from(grupos).sort((a, b) => a.localeCompare(b)), 
+      veiculos: Array.from(veiculosSet).sort() 
+    };
   }, [produtos]);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans antialiased text-slate-900 leading-none">
       
       <header className={`lg:hidden sticky top-0 z-[60] flex items-center justify-between p-4 shadow-xl ${temaAtivo.sidebarBg}`}>
-        <div className="h-10 w-32 bg-white rounded-xl overflow-hidden flex items-center justify-center p-1 leading-none">
-          <img src={temaAtivo.logoUrl} className="max-h-full max-w-full object-contain bg-white" alt="Logo" />
+        <div className="h-10 w-32 bg-white rounded-xl overflow-hidden flex items-center justify-center p-1">
+          <img src={temaAtivo.logoUrl} className="max-h-full max-w-full object-contain" alt="Logo" />
         </div>
-        <button onClick={() => setMenuAberto(true)} className="px-4 py-2 rounded-xl bg-white/10 text-white font-black text-[10px] uppercase border border-white/20 leading-none">Filtros</button>
+        <button onClick={() => setMenuAberto(true)} className="px-4 py-2 rounded-xl bg-white/10 text-white font-black text-[10px] uppercase border border-white/20">Filtros</button>
       </header>
 
       {menuAberto && <div className="fixed inset-0 bg-black/70 z-[70] lg:hidden" onClick={() => setMenuAberto(false)} />}
 
       <aside className={`fixed lg:sticky top-0 z-[80] w-[300px] sm:w-80 shadow-2xl h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="mb-10 w-full hidden lg:block"> 
-          <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 w-full aspect-[2/1] flex items-center justify-center p-4">
-             <img src={temaAtivo.logoUrl} className="w-full h-full object-contain bg-white" alt="Logo" />
+          <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden w-full aspect-[2/1] flex items-center justify-center p-4">
+             <img src={temaAtivo.logoUrl} className="w-full h-full object-contain" alt="Logo" />
           </div>
         </div>
         <button onClick={onBack} className="mb-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors font-bold text-xs uppercase tracking-widest leading-none"><span>←</span> Menu Inicial</button>
@@ -161,72 +183,60 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout }: any) {
 
         <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar pb-10">
           <div>
-            <label className="text-[10px] font-black text-white/40 uppercase mb-3 block leading-none tracking-widest font-sans">Fabricante</label>
-            <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/10 leading-none font-sans">
+            <label className="text-[10px] font-black text-white/40 uppercase mb-3 block tracking-widest">Fabricante</label>
+            <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/10">
               <button onClick={() => setMarca('URBA')} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'URBA' ? 'bg-[#00A8CC] text-white shadow-lg' : 'text-white/40'}`}>URBA</button>
               <button onClick={() => setMarca('BROSOL')} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'BROSOL' ? 'bg-[#FFD700] text-[#2B3990] shadow-lg' : 'text-white/40'}`}>BROSOL</button>
             </div>
           </div>
 
-          <div className="space-y-6 text-white leading-none font-sans">
+          <div className="space-y-6 text-white font-sans">
             <div className="relative">
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-[10px] font-black uppercase ml-1" style={{ color: temaAtivo.accentColor }}>Pesquisa Geral</label>
-                {buscaGeral && <button onClick={() => limparFiltroIndividual('geral')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
-              </div>
+              <label className="text-[10px] font-black uppercase ml-1 block mb-2" style={{ color: temaAtivo.accentColor }}>Pesquisa Geral</label>
               <input value={buscaGeral} onChange={(e) => setBuscaGeral(e.target.value)} placeholder="Modelos, anos, referências..." className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-1 focus:ring-white/20" />
             </div>
 
             <div className="relative">
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-[10px] font-black text-white/40 uppercase ml-1">Código Urba/Brosol</label>
-                {busca && <button onClick={() => limparFiltroIndividual('codigo')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
-              </div>
+              <label className="text-[10px] font-black text-white/40 uppercase ml-1 block mb-2">Código Urba/Brosol</label>
               <input list="list-codigos" value={busca} onChange={(e) => setBusca(e.target.value.toUpperCase())} className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" />
               <datalist id="list-codigos">{opcoesFiltros.codigos.map(c => <option key={c} value={c} />)}</datalist>
             </div>
 
             <div className="relative">
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-[10px] font-black text-white/40 uppercase ml-1">Veículo / Aplicação</label>
-                {filtrosSelecionados['Veículos'] && <button onClick={() => limparFiltroIndividual('Veículos')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
-              </div>
+              <label className="text-[10px] font-black text-white/40 uppercase ml-1 block mb-2">Veículo / Aplicação</label>
               <input list="list-veiculos" value={filtrosSelecionados['Veículos'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Veículos': e.target.value})} className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" />
               <datalist id="list-veiculos">{opcoesFiltros.veiculos.map(v => <option key={v} value={v} />)}</datalist>
             </div>
 
             <div className="relative">
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-[10px] font-black text-white/40 uppercase ml-1 font-sans">Linha (Grupo)</label>
-                {filtrosSelecionados['Grupo'] && <button onClick={() => limparFiltroIndividual('Grupo')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
-              </div>
+              <label className="text-[10px] font-black text-white/40 uppercase ml-1 block mb-2">Linha (Grupo)</label>
               <input list="list-grupos" value={filtrosSelecionados['Grupo'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Grupo': e.target.value})} className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" />
               <datalist id="list-grupos">{opcoesFiltros.grupos.map(g => <option key={g} value={g} />)}</datalist>
             </div>
           </div>
-          <button onClick={() => setMenuAberto(false)} className="lg:hidden w-full py-4 rounded-2xl font-black text-xs uppercase shadow-xl bg-white text-slate-900 leading-none">Aplicar Filtros</button>
+          <button onClick={() => setMenuAberto(false)} className="lg:hidden w-full py-4 rounded-2xl font-black text-xs uppercase shadow-xl bg-white text-slate-900">Aplicar Filtros</button>
         </div>
       </aside>
 
-      <main className="flex-1 p-4 lg:p-10 overflow-y-auto leading-none">
-        <div className="max-w-7xl mx-auto leading-none">
+      <main className="flex-1 p-4 lg:p-10 overflow-y-auto">
+        <div className="max-w-7xl mx-auto">
           {loading ? (
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse text-slate-900">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse">
                 {[1,2,3,4,5,6].map(i => <div key={i} className="h-96 bg-white rounded-[2.5rem]"></div>)}
              </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 text-slate-900 leading-none">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {produtosExibidos.map(p => (
-                <div key={p.id} className="bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-slate-100 flex flex-col group overflow-hidden leading-none">
+                <div key={p.id} className="bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-slate-100 flex flex-col group overflow-hidden">
                   <div className="aspect-[4/3] bg-slate-50 flex items-center justify-center p-8 relative min-h-[220px]">
                     {p.dados['Lançamento'] === 'Sim' && <span className={`absolute top-6 left-6 text-[10px] font-black px-4 py-1.5 rounded-full z-10 shadow-md uppercase tracking-wider ${temaAtivo.badge} leading-none`}>Lançamento</span>}
                     <img src={`${STORAGE_URL}/${marca.toLowerCase()}/${p.codigo_produto.toLowerCase()}.jpg`} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" loading="eager" />
                   </div>
-                  <div className="p-8 flex flex-col flex-1 leading-none text-slate-900">
-                    <span className="text-3xl font-black tracking-tighter mb-1 uppercase font-sans leading-none">{p.codigo_produto}</span>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-4 font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{p.dados['Grupo']}</p>
-                    <p className="text-xs text-slate-400 line-clamp-3 mb-6 italic leading-tight font-sans leading-none">{p.dados['Veículos']}</p>
-                    <button onClick={() => setProdutoSelecionado(p)} className="w-full mt-auto font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none">Detalhes</button>
+                  <div className="p-8 flex flex-col flex-1 text-slate-900">
+                    <span className="text-3xl font-black tracking-tighter mb-1 uppercase leading-none">{p.codigo_produto}</span>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-4" style={{ color: temaAtivo.accentColor }}>{p.dados['Grupo']}</p>
+                    <p className="text-xs text-slate-400 line-clamp-3 mb-6 italic leading-tight">{p.dados['Veículos']}</p>
+                    <button onClick={() => setProdutoSelecionado(p)} className="w-full mt-auto font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs">Detalhes</button>
                   </div>
                 </div>
               ))}
@@ -259,29 +269,29 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
   }, [produto]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-slate-900/95 backdrop-blur-md leading-none font-sans">
-      <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-100 text-slate-900 leading-none">
-        <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all text-slate-900 flex items-center justify-center leading-none">✕</button>
-        <div className="lg:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center min-h-[400px] relative text-slate-900 leading-none">
-          <div className="flex-1 flex items-center justify-center w-full leading-none"><img src={fotoAtiva} className="max-h-[450px] max-w-full object-contain drop-shadow-2xl" alt="Produto" /></div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-slate-900/95 backdrop-blur-md font-sans">
+      <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-100 text-slate-900">
+        <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all text-slate-900 flex items-center justify-center">✕</button>
+        <div className="lg:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center min-h-[400px] relative">
+          <div className="flex-1 flex items-center justify-center w-full"><img src={fotoAtiva} className="max-h-[450px] max-w-full object-contain drop-shadow-2xl" alt="Produto" /></div>
           {fotos.length > 1 && (
-            <div className="flex gap-3 mt-6 p-2 overflow-x-auto max-w-full custom-scrollbar text-slate-900 leading-none">
+            <div className="flex gap-3 mt-6 p-2 overflow-x-auto max-w-full custom-scrollbar">
               {fotos.map((url, i) => (
-                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-16 h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none ${fotoAtiva === url ? 'scale-105 shadow-md' : 'opacity-40'}`} style={{ borderColor: fotoAtiva === url ? temaAtivo.accentColor : 'transparent' }}><img src={url} className="w-full h-full object-contain bg-white" alt="Miniatura" /></button>
+                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-16 h-16 flex-shrink-0 rounded-xl border-2 transition-all ${fotoAtiva === url ? 'scale-105 shadow-md' : 'opacity-40'}`} style={{ borderColor: fotoAtiva === url ? temaAtivo.accentColor : 'transparent' }}><img src={url} className="w-full h-full object-contain bg-white rounded-lg" alt="Miniatura" /></button>
               ))}
             </div>
           )}
         </div>
-        <div className="lg:w-1/2 p-10 lg:p-14 overflow-y-auto bg-white flex flex-col flex-1 text-slate-900 leading-none font-sans">
-          <div className="mb-10 text-slate-900 leading-none font-sans"><span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span><h2 className="text-5xl font-black tracking-tighter uppercase font-sans leading-none">{produto.codigo_produto}</h2></div>
-          <div className="space-y-6 flex-1 text-slate-900 font-sans leading-none font-sans">
+        <div className="lg:w-1/2 p-10 lg:p-14 overflow-y-auto bg-white flex flex-col flex-1">
+          <div className="mb-10"><span className="font-black text-xs tracking-widest uppercase mb-2 block" style={{ color: temaAtivo.accentColor }}>{marca}</span><h2 className="text-5xl font-black tracking-tighter uppercase leading-none">{produto.codigo_produto}</h2></div>
+          <div className="space-y-6 flex-1">
             {Object.entries(produto.dados).map(([key, value]) => (
               value && !['id', 'Arquivo Foto', 'codigo_produto', 'Descrição Produto', 'Lançamento'].includes(key) && (
-                <div key={key} className="border-b border-slate-50 pb-3 text-slate-900 leading-none font-sans"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-sans leading-none">{key}</span><p className="text-slate-800 font-bold leading-tight mt-1 font-sans leading-none">{String(value)}</p></div>
+                <div key={key} className="border-b border-slate-50 pb-3"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key}</span><p className="text-slate-800 font-bold leading-tight mt-1">{String(value)}</p></div>
               )
             ))}
           </div>
-          <button onClick={onClose} className="mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none">Voltar</button>
+          <button onClick={onClose} className="mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs">Voltar</button>
         </div>
       </div>
     </div>

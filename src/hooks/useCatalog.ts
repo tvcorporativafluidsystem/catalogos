@@ -27,49 +27,36 @@ export function useCatalog(marca: string) {
   const buscar = async (termo: string, filtrosAtivos: any, buscaGeral?: string) => {
     setLoading(true);
     
-    // 1. Iniciamos a query selecionando os dados da marca
+    // 1. Iniciamos a query básica
     let query = supabase.from('produtos').select('*').eq('marca', marca);
 
-    // 2. APLICAÇÃO DOS FILTROS LATERAIS (Código, Veículo, Grupo)
+    // 2. Filtro de Código (Barra lateral)
     if (termo && termo.trim() !== '') {
       query = query.ilike('codigo_produto', `%${termo.trim()}%`);
     }
 
+    // 3. Filtros Dinâmicos (Grupo, etc)
     Object.entries(filtrosAtivos).forEach(([key, value]) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
         query = query.ilike(`dados->>${key}`, `%${value.trim()}%`);
       }
     });
 
-    // 3. PESQUISA GERAL (Otimizada para JSONB)
+    // 4. PESQUISA GERAL (Busca em profundidade no JSON)
     if (buscaGeral && buscaGeral.trim() !== '') {
       const t = buscaGeral.trim();
-      
-      /* MUDANÇA CRÍTICA: 
-         Em vez de usar dados::text (que pode ser bloqueado), 
-         vamos usar o operador @> ou pesquisar especificamente nas colunas 
-         mais comuns de texto dentro do JSON.
-      */
-      query = query.or(`codigo_produto.ilike.%${t}%, dados->>Veículos.ilike.%${t}%, dados->>Grupo.ilike.%${t}%, dados->>Descrição Produto.ilike.%${t}%`);
+      // Adicionamos "Números Referência" na busca geral como você pediu
+      query = query.or(`codigo_produto.ilike.%${t}%, dados->>Veículos.ilike.%${t}%, dados->>Grupo.ilike.%${t}%, dados->>Números Referência.ilike.%${t}%`);
     }
 
     query = query.order('codigo_produto', { ascending: true });
 
-    const { data, error } = await query.range(0, 100);
+    // CORREÇÃO CRÍTICA: Aumentamos o limite para 1000 ou removemos o range baixo
+    // Para catálogos, 1000 itens costumam cobrir toda a linha sem travar o browser
+    const { data, error } = await query.limit(1000); 
     
     if (error) {
       console.error('Erro na busca:', error.message);
-      
-      // FALLBACK: Se o erro for de sintaxe no .or(), tentamos uma busca mais simples
-      if (error.message.includes('operator does not exist')) {
-         const { data: fallbackData } = await supabase
-          .from('produtos')
-          .select('*')
-          .eq('marca', marca)
-          .ilike('codigo_produto', `%${buscaGeral}%`)
-          .limit(100);
-         setProdutos(fallbackData || []);
-      }
     } else {
       setProdutos(data || []);
     }

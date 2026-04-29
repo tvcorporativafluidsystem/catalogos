@@ -82,6 +82,13 @@ export default function CatalogoPage() {
     };
   }, [produtos]);
 
+  // Função auxiliar para ícone de lupa
+  const LupaIcon = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans antialiased text-slate-900">
       
@@ -90,38 +97,27 @@ export default function CatalogoPage() {
         <div className="h-10 w-32 bg-white rounded-xl p-1.5 shadow-inner flex items-center justify-center">
           <img src={temaAtivo.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
         </div>
-        <button 
-          onClick={() => setMenuAberto(true)}
-          className="px-4 py-2 rounded-xl bg-white/10 text-white font-black text-[10px] uppercase border border-white/20"
-        >
-          Filtros
-        </button>
+        <button onClick={() => setMenuAberto(true)} className="px-4 py-2 rounded-xl bg-white/10 text-white font-black text-[10px] uppercase border border-white/20">Filtros</button>
       </header>
 
       {menuAberto && <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] lg:hidden" onClick={() => setMenuAberto(false)} />}
 
       <aside className={`fixed lg:sticky top-0 z-[80] w-80 shadow-2xl h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         
-        {/* LOGO - VISUAL ATUALIZADO (SEM CAIXA BRANCA, FUNDO DE VIDRO) */}
         <div className="mb-10 w-full hidden lg:block"> 
           <div className="bg-white/10 border border-white/10 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center w-full min-h-[140px] p-6 shadow-2xl">
-             <img 
-              src={temaAtivo.logoUrl} 
-              alt={`Logo ${marca}`} 
-              className="w-full h-auto max-h-[100px] object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]" 
-              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/200x100?text=Sem+Logo'; }} 
-             />
+             <img src={temaAtivo.logoUrl} alt={`Logo ${marca}`} className="w-full h-auto max-h-[100px] object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]" onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/200x100?text=Sem+Logo'; }} />
           </div>
         </div>
 
-        <Link href="/" className="mb-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors font-bold text-xs uppercase tracking-widest text-white"><span>←</span> Menu Inicial</Link>
+        <Link href="/" className="mb-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors font-bold text-xs uppercase tracking-widest"><span>←</span> Menu Inicial</Link>
 
         <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar pb-10">
           <div>
             <label className="text-[10px] font-black text-white/40 uppercase mb-3 block">Fabricante</label>
             <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/10">
-              <button onClick={() => { setMarca('URBA'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'URBA' ? 'bg-[#00A8CC] text-white shadow-lg' : 'text-white/40'}`}>URBA</button>
-              <button onClick={() => { setMarca('BROSOL'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'BROSOL' ? 'bg-[#FFD700] text-[#2B3990] shadow-lg' : 'text-white/40'}`}>BROSOL</button>
+              <button onClick={() => { setMarca('URBA'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold ${marca === 'URBA' ? 'bg-[#00A8CC] text-white shadow-lg' : 'text-white/40'}`}>URBA</button>
+              <button onClick={() => { setMarca('BROSOL'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold ${marca === 'BROSOL' ? 'bg-[#FFD700] text-[#2B3990] shadow-lg' : 'text-white/40'}`}>BROSOL</button>
             </div>
           </div>
 
@@ -131,7 +127,10 @@ export default function CatalogoPage() {
               <label className="text-[10px] font-black uppercase ml-1" style={{ color: temaAtivo.accentColor }}>Pesquisa Geral</label>
               {buscaGeral && <button onClick={() => limparFiltroIndividual('geral')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
             </div>
-            <input value={buscaGeral} onChange={(e) => setBuscaGeral(e.target.value)} placeholder="O que busca?" className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+            <div className="relative group">
+              <input value={buscaGeral} onChange={(e) => setBuscaGeral(e.target.value)} placeholder="O que busca?" className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 pr-10 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+              <button onClick={() => setMenuAberto(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors" style={{ color: buscaGeral ? temaAtivo.accentColor : '' }}><LupaIcon /></button>
+            </div>
           </div>
 
           {/* CÓDIGO */}
@@ -140,7 +139,10 @@ export default function CatalogoPage() {
               <label className="text-[10px] font-black text-white/40 uppercase ml-1">Código</label>
               {busca && <button onClick={() => limparFiltroIndividual('codigo')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
             </div>
-            <input list="list-codigos" value={busca} onChange={(e) => setBusca(e.target.value.toUpperCase())} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+            <div className="relative group">
+              <input list="list-codigos" value={busca} onChange={(e) => setBusca(e.target.value.toUpperCase())} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 pr-10 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+              <button onClick={() => setMenuAberto(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors" style={{ color: busca ? temaAtivo.accentColor : '' }}><LupaIcon /></button>
+            </div>
             <datalist id="list-codigos">{opcoesFiltros.codigos.map(c => <option key={c} value={c} />)}</datalist>
           </div>
 
@@ -150,7 +152,10 @@ export default function CatalogoPage() {
               <label className="text-[10px] font-black text-white/40 uppercase ml-1">Veículo / Aplicação</label>
               {filtrosSelecionados['Veículos'] && <button onClick={() => limparFiltroIndividual('Veículos')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
             </div>
-            <input list="list-veiculos" value={filtrosSelecionados['Veículos'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Veículos': e.target.value})} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+            <div className="relative group">
+              <input list="list-veiculos" value={filtrosSelecionados['Veículos'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Veículos': e.target.value})} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 pr-10 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+              <button onClick={() => setMenuAberto(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors" style={{ color: filtrosSelecionados['Veículos'] ? temaAtivo.accentColor : '' }}><LupaIcon /></button>
+            </div>
             <datalist id="list-veiculos">{opcoesFiltros.veiculos.map(v => <option key={v} value={v} />)}</datalist>
           </div>
 
@@ -160,8 +165,15 @@ export default function CatalogoPage() {
               <label className="text-[10px] font-black text-white/40 uppercase ml-1">Linha (Grupo)</label>
               {filtrosSelecionados['Grupo'] && <button onClick={() => limparFiltroIndividual('Grupo')} className="text-[9px] text-red-400 font-bold uppercase">Limpar</button>}
             </div>
-            <input list="list-grupos" value={filtrosSelecionados['Grupo'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Grupo': e.target.value})} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+            <div className="relative group">
+              <input list="list-grupos" value={filtrosSelecionados['Grupo'] || ''} onChange={(e) => setFiltrosSelecionados({...filtrosSelecionados, 'Grupo': e.target.value})} className={`w-full bg-black/20 border border-white/10 rounded-xl p-3 pr-10 text-sm text-white outline-none focus:ring-2 ${temaAtivo.inputFocus}`} />
+              <button onClick={() => setMenuAberto(false)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors" style={{ color: filtrosSelecionados['Grupo'] ? temaAtivo.accentColor : '' }}><LupaIcon /></button>
+            </div>
             <datalist id="list-grupos">{opcoesFiltros.grupos.map(g => <option key={g} value={g} />)}</datalist>
+          </div>
+
+          <div className="lg:hidden pt-4">
+            <button onClick={() => setMenuAberto(false)} className={`w-full py-4 rounded-2xl font-black text-xs uppercase shadow-xl transition-all active:scale-95 ${temaAtivo.buttonBg} ${temaAtivo.buttonText}`}>Aplicar Filtros</button>
           </div>
         </div>
       </aside>
@@ -178,12 +190,7 @@ export default function CatalogoPage() {
                 <div key={produto.id} className="bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col group overflow-hidden">
                   <div className="aspect-[4/3] bg-slate-50 flex items-center justify-center p-8 relative min-h-[220px]">
                     {produto.dados['Lançamento'] === 'Sim' && <span className={`absolute top-6 left-6 text-[10px] font-black px-4 py-1.5 rounded-full z-10 shadow-md uppercase tracking-wider ${temaAtivo.badge}`}>Lançamento</span>}
-                    <img 
-                      src={`${STORAGE_URL}/${marca.toLowerCase()}/${produto.codigo_produto.toLowerCase()}.jpg`} 
-                      className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700"
-                      loading="eager"
-                      onError={(e) => { e.currentTarget.src = `${STORAGE_URL}/${marca.toLowerCase()}/${produto.codigo_produto.toLowerCase()}_a.jpg`; }}
-                    />
+                    <img src={`${STORAGE_URL}/${marca.toLowerCase()}/${produto.codigo_produto.toLowerCase()}.jpg`} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" loading="eager" onError={(e) => { e.currentTarget.src = `${STORAGE_URL}/${marca.toLowerCase()}/${produto.codigo_produto.toLowerCase()}_a.jpg`; }} />
                   </div>
                   <div className="p-8 flex flex-col flex-1">
                     <span className="text-3xl font-black text-slate-900 tracking-tighter mb-1 uppercase leading-none">{produto.codigo_produto}</span>
@@ -214,7 +221,6 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
     let montado = true;
     const cod = produto.codigo_produto.toLowerCase();
     const cacheKey = `${marca}-${cod}`;
-
     if (globalImageCache.has(cacheKey)) {
       const cached = globalImageCache.get(cacheKey)!;
       setFotos(cached);
@@ -222,24 +228,19 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
       setLoadingGaleria(false);
       return;
     }
-
-    const verificarFotos = async () => {
+    const carregar = async () => {
       const sufixos = ['', '_a', '_b', '_c', '_d'];
       const caminhos = sufixos.map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
-      const checagens = await Promise.all(
-        caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null))
-      );
+      const checagens = await Promise.all(caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null)));
       if (!montado) return;
-      const encontradas = checagens.filter((url): url is string => url !== null);
-      const resultadoFinal = encontradas.length > 0 ? encontradas : ['https://via.placeholder.com/400x300?text=Sem+Imagem'];
-      
-      globalImageCache.set(cacheKey, resultadoFinal);
-      setFotos(resultadoFinal);
-      setFotoAtiva(resultadoFinal[0]);
+      const encontradas = checagens.filter((u): u is string => u !== null);
+      const res = encontradas.length > 0 ? encontradas : ['https://via.placeholder.com/400x300?text=Sem+Imagem'];
+      globalImageCache.set(cacheKey, res);
+      setFotos(res);
+      setFotoAtiva(res[0]);
       setLoadingGaleria(false);
     };
-
-    verificarFotos();
+    carregar();
     return () => { montado = false; };
   }, [produto]);
 
@@ -248,40 +249,26 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
       <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md" onClick={onClose}></div>
       <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row animate-in zoom-in-95 duration-300 border border-slate-100 text-slate-900">
         <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all text-slate-900 flex items-center justify-center">✕</button>
-
         <div className="lg:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center min-h-[400px] text-slate-900 relative">
-          {loadingGaleria ? (
-            <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: temaAtivo.accentColor }}></div>
-          ) : (
+          {loadingGaleria ? <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: temaAtivo.accentColor }}></div> : (
             <>
-              <div className="flex-1 flex items-center justify-center w-full">
-                <img src={fotoAtiva} className="max-h-[450px] max-w-full object-contain drop-shadow-2xl animate-in fade-in duration-500" />
-              </div>
+              <div className="flex-1 flex items-center justify-center w-full"><img src={fotoAtiva} className="max-h-[450px] max-w-full object-contain drop-shadow-2xl animate-in fade-in duration-500" /></div>
               {fotos.length > 1 && (
                 <div className="flex gap-3 mt-6 p-2 overflow-x-auto max-w-full custom-scrollbar">
                   {fotos.map((url, i) => (
-                    <button key={i} onClick={() => setFotoAtiva(url)} className={`w-16 h-16 flex-shrink-0 rounded-xl border-2 transition-all ${fotoAtiva === url ? 'scale-105 shadow-md' : 'opacity-40'}`} style={{ borderColor: fotoAtiva === url ? temaAtivo.accentColor : 'transparent' }}>
-                      <img src={url} className="w-full h-full object-contain" />
-                    </button>
+                    <button key={i} onClick={() => setFotoAtiva(url)} className={`w-16 h-16 flex-shrink-0 rounded-xl border-2 transition-all ${fotoAtiva === url ? 'scale-105 shadow-md' : 'opacity-40'}`} style={{ borderColor: fotoAtiva === url ? temaAtivo.accentColor : 'transparent' }}><img src={url} className="w-full h-full object-contain" /></button>
                   ))}
                 </div>
               )}
             </>
           )}
         </div>
-
         <div className="lg:w-1/2 p-10 lg:p-14 overflow-y-auto bg-white flex flex-col flex-1 text-slate-900">
-          <div className="mb-10 text-slate-900">
-            <span className="font-black text-xs tracking-widest uppercase mb-2 block" style={{ color: temaAtivo.accentColor }}>{marca}</span>
-            <h2 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">{produto.codigo_produto}</h2>
-          </div>
+          <div className="mb-10 text-slate-900"><span className="font-black text-xs tracking-widest uppercase mb-2 block" style={{ color: temaAtivo.accentColor }}>{marca}</span><h2 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">{produto.codigo_produto}</h2></div>
           <div className="space-y-6 flex-1 text-slate-900">
             {Object.entries(produto.dados).map(([key, value]) => (
               value && !['id', 'Arquivo Foto', 'codigo_produto', 'Descrição Produto', 'Lançamento'].includes(key) && (
-                <div key={key} className="border-b border-slate-50 pb-3 text-slate-900">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key}</span>
-                  <p className="text-slate-800 font-bold leading-tight mt-1">{String(value)}</p>
-                </div>
+                <div key={key} className="border-b border-slate-50 pb-3 text-slate-900"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key}</span><p className="text-slate-800 font-bold leading-tight mt-1">{String(value)}</p></div>
               )
             ))}
           </div>

@@ -102,9 +102,15 @@ export default function CatalogoPage() {
 
       <aside className={`fixed lg:sticky top-0 z-[80] w-80 shadow-2xl h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         
-        <div className="mb-10 w-full px-2 hidden lg:block"> 
-          <div className="bg-white rounded-2xl shadow-inner flex items-center justify-center w-full h-32 p-4 overflow-hidden border-2 border-white/10">
-             <img src={temaAtivo.logoUrl} alt={`Logo ${marca}`} className="max-w-full max-h-full object-contain" onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/200x100?text=Sem+Logo'; }} />
+        {/* LOGO - VISUAL ATUALIZADO (SEM CAIXA BRANCA, FUNDO DE VIDRO) */}
+        <div className="mb-10 w-full hidden lg:block"> 
+          <div className="bg-white/10 border border-white/10 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center w-full min-h-[140px] p-6 shadow-2xl">
+             <img 
+              src={temaAtivo.logoUrl} 
+              alt={`Logo ${marca}`} 
+              className="w-full h-auto max-h-[100px] object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]" 
+              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/200x100?text=Sem+Logo'; }} 
+             />
           </div>
         </div>
 
@@ -240,7 +246,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 lg:p-8">
       <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md" onClick={onClose}></div>
-      <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row animate-in zoom-in-95 duration-300 border border-slate-100">
+      <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row animate-in zoom-in-95 duration-300 border border-slate-100 text-slate-900">
         <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all text-slate-900 flex items-center justify-center">✕</button>
 
         <div className="lg:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center min-h-[400px] text-slate-900 relative">

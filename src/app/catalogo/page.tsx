@@ -82,7 +82,6 @@ export default function CatalogoPage() {
     };
   }, [produtos]);
 
-  // Função auxiliar para ícone de lupa
   const LupaIcon = () => (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -94,8 +93,8 @@ export default function CatalogoPage() {
       
       {/* HEADER MOBILE */}
       <header className={`lg:hidden sticky top-0 z-[60] flex items-center justify-between p-4 shadow-xl ${temaAtivo.sidebarBg}`}>
-        <div className="h-10 w-32 bg-white rounded-xl p-1.5 shadow-inner flex items-center justify-center">
-          <img src={temaAtivo.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+        <div className="h-10 w-32 bg-white rounded-xl overflow-hidden flex items-center justify-center">
+          <img src={temaAtivo.logoUrl} alt="Logo" className="w-full h-full object-cover" />
         </div>
         <button onClick={() => setMenuAberto(true)} className="px-4 py-2 rounded-xl bg-white/10 text-white font-black text-[10px] uppercase border border-white/20">Filtros</button>
       </header>
@@ -104,24 +103,29 @@ export default function CatalogoPage() {
 
       <aside className={`fixed lg:sticky top-0 z-[80] w-80 shadow-2xl h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         
+        {/* LOGO - CORREÇÃO DEFINITIVA PARA IMAGEM 800x400 */}
         <div className="mb-10 w-full hidden lg:block"> 
-          <div className="bg-white/10 border border-white/10 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center w-full min-h-[140px] p-6 shadow-2xl">
-             <img src={temaAtivo.logoUrl} alt={`Logo ${marca}`} className="w-full h-auto max-h-[100px] object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)]" onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/200x100?text=Sem+Logo'; }} />
+          <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 w-full aspect-[2/1] flex items-center justify-center">
+             <img 
+              src={temaAtivo.logoUrl} 
+              alt={`Logo ${marca}`} 
+              className="w-full h-full object-cover" 
+              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/800x400?text=Sem+Logo'; }} 
+             />
           </div>
         </div>
 
-        <Link href="/" className="mb-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors font-bold text-xs uppercase tracking-widest"><span>←</span> Menu Inicial</Link>
+        <Link href="/" className="mb-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors font-bold text-xs uppercase tracking-widest text-white"><span>←</span> Menu Inicial</Link>
 
         <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar pb-10">
           <div>
             <label className="text-[10px] font-black text-white/40 uppercase mb-3 block">Fabricante</label>
             <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/10">
-              <button onClick={() => { setMarca('URBA'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold ${marca === 'URBA' ? 'bg-[#00A8CC] text-white shadow-lg' : 'text-white/40'}`}>URBA</button>
-              <button onClick={() => { setMarca('BROSOL'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold ${marca === 'BROSOL' ? 'bg-[#FFD700] text-[#2B3990] shadow-lg' : 'text-white/40'}`}>BROSOL</button>
+              <button onClick={() => { setMarca('URBA'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'URBA' ? 'bg-[#00A8CC] text-white shadow-lg' : 'text-white/40'}`}>URBA</button>
+              <button onClick={() => { setMarca('BROSOL'); setMenuAberto(false); }} className={`py-2 rounded-lg text-xs font-bold transition-all ${marca === 'BROSOL' ? 'bg-[#FFD700] text-[#2B3990] shadow-lg' : 'text-white/40'}`}>BROSOL</button>
             </div>
           </div>
 
-          {/* PESQUISA GERAL */}
           <div className="relative">
             <div className="flex justify-between items-center mb-2">
               <label className="text-[10px] font-black uppercase ml-1" style={{ color: temaAtivo.accentColor }}>Pesquisa Geral</label>
@@ -133,7 +137,6 @@ export default function CatalogoPage() {
             </div>
           </div>
 
-          {/* CÓDIGO */}
           <div className="relative">
             <div className="flex justify-between items-center mb-2">
               <label className="text-[10px] font-black text-white/40 uppercase ml-1">Código</label>
@@ -146,7 +149,6 @@ export default function CatalogoPage() {
             <datalist id="list-codigos">{opcoesFiltros.codigos.map(c => <option key={c} value={c} />)}</datalist>
           </div>
 
-          {/* VEÍCULO */}
           <div className="relative">
             <div className="flex justify-between items-center mb-2">
               <label className="text-[10px] font-black text-white/40 uppercase ml-1">Veículo / Aplicação</label>
@@ -159,7 +161,6 @@ export default function CatalogoPage() {
             <datalist id="list-veiculos">{opcoesFiltros.veiculos.map(v => <option key={v} value={v} />)}</datalist>
           </div>
 
-          {/* LINHA (GRUPO) */}
           <div className="relative">
             <div className="flex justify-between items-center mb-2">
               <label className="text-[10px] font-black text-white/40 uppercase ml-1">Linha (Grupo)</label>
@@ -178,10 +179,10 @@ export default function CatalogoPage() {
         </div>
       </aside>
 
-      <main className="flex-1 p-4 lg:p-10 overflow-y-auto">
+      <main className="flex-1 p-4 lg:p-10 overflow-y-auto text-slate-900">
         <div className="max-w-6xl mx-auto">
           {loading ? (
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse text-slate-900">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse">
                 {[1,2,3,4,5,6].map(i => <div key={i} className="h-96 bg-white rounded-[2.5rem]"></div>)}
              </div>
           ) : (
@@ -242,7 +243,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
     };
     carregar();
     return () => { montado = false; };
-  }, [produto]);
+  }, [produto, marca, storageUrl]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 lg:p-8">

@@ -26,12 +26,10 @@ export default function AppContainer() {
     alert('Sessão administrativa encerrada.');
   };
 
-  // --- 1. TELA DE CAPA 2026 (VISUAL ROBUSTO) ---
   if (view === 'HOME') {
     return (
       <main className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4 relative font-sans overflow-hidden text-white leading-none">
         
-        {/* BOTÃO ACESSO RESTREITO */}
         <button 
           onClick={() => isAdmin ? handleLogout() : setShowLoginModal(true)}
           className={`absolute top-6 md:top-8 right-4 md:right-8 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] border px-4 py-2 rounded-full transition-all z-50 ${
@@ -41,7 +39,6 @@ export default function AppContainer() {
           {isAdmin ? '● Admin Ativo (Sair)' : 'Acesso Administrativo'}
         </button>
 
-        {/* TÍTULO PESADO 2026 */}
         <div className="text-center mb-12 md:mb-20 z-10 mt-16 md:mt-0 leading-none">
           <h1 className="text-white text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-[0.85] mb-2 font-sans">
             Catálogo <br className="md:hidden" /> de Produtos
@@ -50,7 +47,6 @@ export default function AppContainer() {
             2026
           </p>
           
-          {/* PAINEL DE CONTROLE - RESTAURADO AQUI */}
           {isAdmin && (
             <div className="flex justify-center mt-10 animate-in zoom-in duration-500">
               <button 
@@ -63,7 +59,6 @@ export default function AppContainer() {
           )}
         </div>
 
-        {/* CARDS DAS MARCAS */}
         <div className="flex flex-col md:flex-row gap-6 md:gap-10 max-w-6xl w-full justify-center items-center px-4 z-10 leading-none">
           <div 
             onClick={() => { setMarcaSelecionada('URBA'); setView('CATALOGO'); }} 
@@ -86,7 +81,6 @@ export default function AppContainer() {
           </div>
         </div>
 
-        {/* MODAL DE LOGIN */}
         {showLoginModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md leading-none">
             <div className="bg-[#1e293b] border border-white/10 p-10 rounded-[2.5rem] w-full max-w-md shadow-2xl leading-none">
@@ -104,11 +98,9 @@ export default function AppContainer() {
     );
   }
 
-  // --- 2. RENDERIZAÇÃO DO CATÁLOGO ---
   return <CatalogoPage marcaInicial={marcaSelecionada} onBack={() => setView('HOME')} isAdmin={isAdmin} onLogout={handleLogout} />;
 }
 
-// O componente CatalogoPage permanece igual, chamando o seu hook corrigido com limit(1000)
 function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout }: any) {
   const [marca, setMarca] = useState<'URBA' | 'BROSOL'>(marcaInicial);
   const [busca, setBusca] = useState(''); 
@@ -252,7 +244,7 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout }: any) {
                   <div className="p-8 flex flex-col flex-1 leading-none text-slate-900 font-sans">
                     <span className="text-3xl font-black tracking-tighter mb-1 uppercase font-sans leading-none">{p.codigo_produto}</span>
                     <p className="text-[10px] font-black uppercase tracking-widest mb-4 font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{p.dados['Grupo']}</p>
-                    <p className="text-xs text-slate-400 line-clamp-3 mb-6 italic leading-tight font-sans">{p.dados['Veículos']}</p>
+                    <p className="text-xs text-slate-400 line-clamp-3 mb-6 italic leading-tight font-sans whitespace-pre-line">{p.dados['Veículos']}</p>
                     <button onClick={() => setProdutoSelecionado(p)} className={`w-full mt-auto font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none`}>Detalhes</button>
                   </div>
                 </div>
@@ -304,7 +296,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo }: any) 
           <div className="space-y-6 flex-1 text-slate-900 font-sans leading-none font-sans">
             {Object.entries(produto.dados).map(([key, value]) => (
               value && !['id', 'Arquivo Foto', 'codigo_produto', 'Descrição Produto', 'Lançamento'].includes(key) && (
-                <div key={key} className="border-b border-slate-50 pb-3 text-slate-900 leading-none font-sans"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-sans leading-none">{key}</span><p className="text-slate-800 font-bold leading-tight mt-1 font-sans leading-none">{String(value)}</p></div>
+                <div key={key} className="border-b border-slate-50 pb-3 text-slate-900 leading-none font-sans"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-sans leading-none">{key}</span><p className="text-slate-800 font-bold leading-tight mt-1 font-sans leading-none whitespace-pre-line">{String(value)}</p></div>
               )
             ))}
           </div>

@@ -140,7 +140,7 @@ export default function AppContainer() {
         <div className="flex flex-col md:flex-row gap-6 md:gap-10 max-w-6xl w-full justify-center items-center px-4 z-10 leading-none">
           <div onClick={() => { setMarcaSelecionada('URBA'); setView('CATALOGO'); }} className="group cursor-pointer bg-slate-900/40 p-5 md:p-6 rounded-[2.5rem] md:rounded-[3rem] border-2 border-white/5 hover:border-[#00A8CC] transition-all duration-500 w-full max-w-[320px] md:max-w-sm shadow-2xl leading-none">
             <div className="bg-white rounded-[2rem] aspect-[2/1] flex items-center justify-center p-6 shadow-inner overflow-hidden leading-none">
-              <img src="https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images/logos/urba_logo.png" className="w-full h-full object-contain bg-white group-hover:scale-110 transition-transform duration-500" alt="URBA" />
+             <img src="https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images/logos/urba_logo.png" className="w-full h-full object-contain bg-white group-hover:scale-110 transition-transform duration-500" alt="URBA" />
             </div>
             <p className="text-center text-white/20 text-[10px] font-bold uppercase tracking-[0.5em] mt-5 md:mt-6 group-hover:text-[#00A8CC] leading-none italic transition-colors font-sans">{t.enter} Urba</p>
           </div>
@@ -257,7 +257,7 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
             <p className="text-[10px] font-black uppercase text-green-400 mb-2 tracking-widest leading-none font-sans">Admin Logado</p>
             <button onClick={onLogout} className="w-full py-2 bg-red-500/20 text-red-400 rounded-xl font-black text-[9px] uppercase border border-red-500/30 leading-none font-sans">Sair do Admin</button>
           </div>
-        )}
+       )}
 
         <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar pb-10 leading-none text-white font-sans">
           <div className="leading-none">
@@ -345,7 +345,9 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
   useEffect(() => {
     let montado = true;
     const cod = produto.codigo_produto.toLowerCase();
-    const caminhos = ['', '_a', '_b', '_c', '_d'].map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
+    
+    // CORREÇÃO 1: Expandido a busca de sufixos para suportar mais de 4 fotos consecutives (de '' até '_j')
+    const caminhos = ['', '_a', '_b', '_c', '_d', '_e', '_f', '_g', '_h', '_i', '_j'].map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
     Promise.all(caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null)))
       .then(res => {
         if (!montado) return;
@@ -360,8 +362,12 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-slate-900/95 backdrop-blur-md leading-none font-sans text-slate-900">
       <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
         <button onClick={onClose} className="absolute top-6 right-6 z-[110] bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
-        <div className="lg:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center min-h-[400px] relative leading-none">
-          <div className="flex-1 flex items-center justify-center w-full leading-none"><img src={fotoAtiva} className="max-h-[450px] max-w-full object-contain drop-shadow-2xl" alt="Produto" /></div>
+        
+        {/* CORREÇÃO 2: Alterado de min-h-[400px] para min-h-[250px] lg:min-h-[400px] e p-6 no celular para reduzir a altura exagerada no mobile */}
+        <div className="lg:w-1/2 bg-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center min-h-[250px] lg:min-h-[400px] relative leading-none">
+          
+          {/* CORREÇÃO 2.1: Alterado de max-h-[450px] para max-h-[250px] sm:max-h-[450px] evitando que a imagem empurre o texto de detalhes para fora da tela do celular */}
+          <div className="flex-1 flex items-center justify-center w-full leading-none"><img src={fotoAtiva} className="max-h-[250px] sm:max-h-[450px] max-w-full object-contain drop-shadow-2xl" alt="Produto" /></div>
           {fotos.length > 1 && (
             <div className="flex gap-3 mt-6 p-2 overflow-x-auto max-w-full custom-scrollbar leading-none font-sans">
               {fotos.map((url, i) => (
@@ -369,7 +375,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
               ))}
             </div>
           )}
-        </div>
+       </div>
         <div className="lg:w-1/2 p-10 lg:p-14 overflow-hidden bg-white flex flex-col flex-1 leading-none font-sans text-slate-900">
           <div className="mb-10 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>

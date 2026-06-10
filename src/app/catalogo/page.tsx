@@ -341,12 +341,13 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, terms, lang }: any) {
   const [fotos, setFotos] = useState<string[]>([]);
   const [fotoAtiva, setFotoAtiva] = useState('');
+  const [isZoomed, setIsZoomed] = useState(false); // Novo estado para controlar a expansão por clique
 
   useEffect(() => {
     let montado = true;
     const cod = produto.codigo_produto.toLowerCase();
     
-    // CORREÇÃO 1: Expandido a busca de sufixos para suportar mais de 4 fotos consecutives (de '' até '_j')
+    // Suporte robusto para até 11 fotos consecutivas
     const caminhos = ['', '_a', '_b', '_c', '_d', '_e', '_f', '_g', '_h', '_i', '_j'].map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
     Promise.all(caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null)))
       .then(res => {
@@ -360,29 +361,37 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-slate-900/95 backdrop-blur-md leading-none font-sans text-slate-900">
-      <div className="relative bg-white w-full h-full lg:h-auto lg:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
+      
+      {/* Ajustado de h-full para h-auto max-h-screen no mobile, adicionado scroll geral para leitura perfeita */}
+      <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto sm:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
         <button onClick={onClose} className="absolute top-6 right-6 z-[110] bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
         
-        {/* CORREÇÃO 2: Alterado de min-h-[400px] para min-h-[250px] lg:min-h-[400px] e p-6 no celular para reduzir a altura exagerada no mobile */}
-        <div className="lg:w-1/2 bg-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center min-h-[250px] lg:min-h-[400px] relative leading-none">
+        {/* Box da imagem ajustado no mobile para ocupar espaço fixado sem comprimir os textos */}
+        <div className="w-full lg:w-1/2 bg-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center h-[320px] sm:h-[450px] lg:h-auto min-h-[320px] lg:min-h-[400px] relative leading-none flex-shrink-0">
           
-          {/* CORREÇÃO 2.1: Alterado de max-h-[450px] para max-h-[250px] sm:max-h-[450px] evitando que a imagem empurre o texto de detalhes para fora da tela do celular */}
-          <div className="flex-1 flex items-center justify-center w-full leading-none"><img src={fotoAtiva} className="max-h-[250px] sm:max-h-[450px] max-w-full object-contain drop-shadow-2xl" alt="Produto" /></div>
+          {/* Adicionado cursor-pointer e onClick para acionar a expansão da foto */}
+          <div className="flex-1 flex items-center justify-center w-full leading-none cursor-pointer" onClick={() => setIsZoomed(true)}>
+            <img src={fotoAtiva} className="max-h-full max-w-full object-contain drop-shadow-2xl" alt="Produto" />
+          </div>
+          
           {fotos.length > 1 && (
-            <div className="flex gap-3 mt-6 p-2 overflow-x-auto max-w-full custom-scrollbar leading-none font-sans">
+            <div className="flex gap-3 mt-4 p-2 overflow-x-auto max-w-full custom-scrollbar leading-none font-sans">
               {fotos.map((url, i) => (
-                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-16 h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg" alt="Miniatura" /></button>
+                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg" alt="Miniatura" /></button>
               ))}
             </div>
           )}
        </div>
-        <div className="lg:w-1/2 p-10 lg:p-14 overflow-hidden bg-white flex flex-col flex-1 leading-none font-sans text-slate-900">
-          <div className="mb-10 leading-none font-sans">
+
+        {/* Removido o overflow-hidden para herdar o scroll de leitura confortável nativo */}
+        <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-14 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900">
+          <div className="mb-8 sm:mb-10 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>
-            <h2 className="text-5xl font-black tracking-tighter uppercase font-sans leading-none">{produto.codigo_produto}</h2>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase font-sans leading-none">{produto.codigo_produto}</h2>
           </div>
           
-          <div className="space-y-6 flex-1 font-sans leading-none overflow-y-auto pr-4 custom-scrollbar text-slate-900">
+          {/* Scroll interno habilitado apenas em telas maiores (sm:overflow-y-auto), no mobile rola junto com o corpo do modal */}
+          <div className="space-y-6 flex-1 font-sans leading-none sm:overflow-y-auto pr-0 sm:pr-4 custom-scrollbar text-slate-900">
             {Object.entries(produto.dados).map(([key, value]) => {
               if (!value || ['id', 'Arquivo Foto', 'codigo_produto', 'Lançamento'].includes(key)) return null;
               
@@ -401,12 +410,23 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-sans leading-none">{terms[key] || key}</span>
                   <p className="text-slate-800 font-bold leading-tight mt-1 font-sans leading-none whitespace-pre-line">{valorExibido}</p>
                 </div>
-              );
+             );
             })}
           </div>
-          <button onClick={onClose} className="mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
+          <button onClick={onClose} className="mt-8 sm:mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
         </div>
       </div>
+
+      {/* LIGHTBOX DE EXPANSÃO / ZOOM DA IMAGEM: Aciona ao clicar na imagem ativa */}
+      {isZoomed && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm cursor-zoom-out p-4"
+          onClick={() => setIsZoomed(false)}
+        >
+          <button className="absolute top-6 right-6 text-white text-xl font-bold bg-white/10 w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/20 transition-all">✕</button>
+          <img src={fotoAtiva} className="max-h-full max-w-full object-contain drop-shadow-2xl animate-in zoom-in duration-200" alt="Produto Expandido" />
+        </div>
+      )}
     </div>
   );
 }

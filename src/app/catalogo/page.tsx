@@ -341,13 +341,13 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, terms, lang }: any) {
   const [fotos, setFotos] = useState<string[]>([]);
   const [fotoAtiva, setFotoAtiva] = useState('');
-  const [isZoomed, setIsZoomed] = useState(false); // Novo estado para controlar a expansão por clique
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   useEffect(() => {
     let montado = true;
     const cod = produto.codigo_produto.toLowerCase();
     
-    // Suporte robusto para até 11 fotos consecutivas
     const caminhos = ['', '_a', '_b', '_c', '_d', '_e', '_f', '_g', '_h', '_i', '_j'].map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
     Promise.all(caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null)))
       .then(res => {
@@ -359,38 +359,58 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
     return () => { montado = false; };
   }, [produto]);
 
+  // Função utilitária para gerenciar a troca automática de fotos ao deslizar o dedo (Swipe)
+  const alternarFotoPorDirecao = (direcionamento: 'PROXIMA' | 'ANTERIOR') => {
+    const indiceAtual = fotos.indexOf(fotoAtiva);
+    if (indiceAtual === -1) return;
+
+    if (direcionamento === 'PROXIMA' && indiceAtual < fotos.length - 1) {
+      setFotoAtiva(fotos[indiceAtual + 1]);
+    } else if (direcionamento === 'ANTERIOR' && indiceAtual > 0) {
+      setFotoAtiva(fotos[indiceAtual - 1]);
+    }
+  };
+
+  // Handlers de toque na tela para permitir navegação deslizante no celular
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diferencaDelta = touchStart - touchEnd;
+
+    if (diferencaDelta > 50) alternarFotoPorDirecao('PROXIMA');
+    if (diferencaDelta < -50) alternarFotoPorDirecao('ANTERIOR');
+    setTouchStart(null);
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-slate-900/95 backdrop-blur-md leading-none font-sans text-slate-900">
       
-      {/* Ajustado de h-full para h-auto max-h-screen no mobile, adicionado scroll geral para leitura perfeita */}
       <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto sm:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
         <button onClick={onClose} className="absolute top-6 right-6 z-[110] bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
         
-        {/* Box da imagem ajustado no mobile para ocupar espaço fixado sem comprimir os textos */}
-        <div className="w-full lg:w-1/2 bg-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center h-[320px] sm:h-[450px] lg:h-auto min-h-[320px] lg:min-h-[400px] relative leading-none flex-shrink-0">
+        <div className="w-full lg:w-1/2 bg-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center h-[340px] sm:h-[450px] lg:h-auto min-h-[340px] lg:min-h-[400px] relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           
-          {/* Adicionado cursor-pointer e onClick para acionar a expansão da foto */}
           <div className="flex-1 flex items-center justify-center w-full leading-none cursor-pointer" onClick={() => setIsZoomed(true)}>
-            <img src={fotoAtiva} className="max-h-full max-w-full object-contain drop-shadow-2xl" alt="Produto" />
+            <img src={fotoAtiva} className="max-h-full max-w-full object-contain drop-shadow-2xl select-none" alt="Produto" />
           </div>
           
           {fotos.length > 1 && (
-            <div className="flex gap-3 mt-4 p-2 overflow-x-auto max-w-full custom-scrollbar leading-none font-sans">
+            /* CORREÇÃO: Adicionado flex-nowrap, evitado quebras de linha e adicionado padding correto para cliques confortáveis nas miniaturas no celular */
+            <div className="flex flex-nowrap gap-4 mt-4 p-3 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth">
               {fotos.map((url, i) => (
-                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg" alt="Miniatura" /></button>
+                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none snap-center ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg pointer-events-none" alt="Miniatura" /></button>
               ))}
             </div>
           )}
        </div>
 
-        {/* Removido o overflow-hidden para herdar o scroll de leitura confortável nativo */}
         <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-14 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900">
           <div className="mb-8 sm:mb-10 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase font-sans leading-none">{produto.codigo_produto}</h2>
           </div>
           
-          {/* Scroll interno habilitado apenas em telas maiores (sm:overflow-y-auto), no mobile rola junto com o corpo do modal */}
           <div className="space-y-6 flex-1 font-sans leading-none sm:overflow-y-auto pr-0 sm:pr-4 custom-scrollbar text-slate-900">
             {Object.entries(produto.dados).map(([key, value]) => {
               if (!value || ['id', 'Arquivo Foto', 'codigo_produto', 'Lançamento'].includes(key)) return null;
@@ -417,14 +437,16 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
         </div>
       </div>
 
-      {/* LIGHTBOX DE EXPANSÃO / ZOOM DA IMAGEM: Aciona ao clicar na imagem ativa */}
+      {/* LIGHTBOX COM SUPORTE A TOUCH-SWIPE: Permite arrastar o dedo para os lados para navegar pelas fotos com zoom ativo */}
       {isZoomed && (
         <div 
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm cursor-zoom-out p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm cursor-zoom-out p-4 touch-none select-none"
           onClick={() => setIsZoomed(false)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <button className="absolute top-6 right-6 text-white text-xl font-bold bg-white/10 w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/20 transition-all">✕</button>
-          <img src={fotoAtiva} className="max-h-full max-w-full object-contain drop-shadow-2xl animate-in zoom-in duration-200" alt="Produto Expandido" />
+          <img src={fotoAtiva} className="max-h-full max-w-full object-contain drop-shadow-2xl animate-in zoom-in duration-200 pointer-events-none" alt="Produto Expandido" />
         </div>
       )}
     </div>

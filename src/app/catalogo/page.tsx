@@ -359,7 +359,6 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
     return () => { montado = false; };
   }, [produto]);
 
-  // Função utilitária para gerenciar a troca automática de fotos ao deslizar o dedo (Swipe)
   const alternarFotoPorDirecao = (direcionamento: 'PROXIMA' | 'ANTERIOR') => {
     const indiceAtual = fotos.indexOf(fotoAtiva);
     if (indiceAtual === -1) return;
@@ -371,7 +370,6 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
     }
   };
 
-  // Handlers de toque na tela para permitir navegação deslizante no celular
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return;
@@ -396,10 +394,11 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
           </div>
           
           {fotos.length > 1 && (
-            /* CORREÇÃO: Adicionado flex-nowrap, evitado quebras de linha e adicionado padding correto para cliques confortáveis nas miniaturas no celular */
             <div className="flex flex-nowrap gap-4 mt-4 p-3 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth">
               {fotos.map((url, i) => (
-                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none snap-center ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg pointer-events-none" alt="Miniatura" /></button>
+                /* CORREÇÃO APLICADA: Forçado w-14 h-14 fixos com flex-shrink-0 e p-1 interno no botão para criar uma área de respiro. 
+                   A imagem agora possui w-full h-full e object-contain absoluto para renderizar 100% inteira sem cortes. */
+                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none snap-center p-1 bg-white ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg pointer-events-none" alt="Miniatura" /></button>
               ))}
             </div>
           )}
@@ -437,7 +436,6 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
         </div>
       </div>
 
-      {/* LIGHTBOX COM SUPORTE A TOUCH-SWIPE: Permite arrastar o dedo para os lados para navegar pelas fotos com zoom ativo */}
       {isZoomed && (
         <div 
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm cursor-zoom-out p-4 touch-none select-none"

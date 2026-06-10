@@ -37,7 +37,7 @@ const translations = {
     filterVehicle: "Vehículo / Aplicación",
     filterGroup: "Línea (Grupo)",
     back: "Menú Principal",
-    details: "Detalles",
+    details: "Detalhes",
     backButton: "Volver",
     launch: "Lanzamiento",
     loginTitle: "Autenticación",
@@ -153,7 +153,7 @@ export default function AppContainer() {
           </div>
         </div>
 
-        {showLoginModal && (
+       {showLoginModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md leading-none">
             <div className="bg-[#1e293b] border border-white/10 p-10 rounded-[2.5rem] w-full max-w-md shadow-2xl leading-none text-white font-sans">
               <h2 className="text-white font-black text-2xl mb-6 uppercase text-center">{t.loginTitle}</h2>
@@ -387,17 +387,17 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
       <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto sm:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
         <button onClick={onClose} className="absolute top-6 right-6 z-[110] bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
         
-        <div className="w-full lg:w-1/2 bg-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center h-[340px] sm:h-[450px] lg:h-auto min-h-[340px] lg:min-h-[400px] relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        {/* CORREÇÃO DO BLOCO DA IMAGEM: Modificado de altura fixa em px para aspect-ratio e limite percentual de tela (max-h-[30vh] ou max-h-[42vh] somando as thumbs). Isso impede que a imagem "coma" o espaço das miniaturas */}
+        <div className="w-full lg:w-1/2 bg-slate-50 p-4 sm:p-8 flex flex-col items-center justify-center h-auto aspect-[4/3] max-h-[42vh] lg:max-h-none lg:h-auto relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           
-          <div className="flex-1 flex items-center justify-center w-full leading-none cursor-pointer" onClick={() => setIsZoomed(true)}>
+          <div className="flex-1 flex items-center justify-center w-full leading-none cursor-pointer max-h-[30vh] lg:max-h-none" onClick={() => setIsZoomed(true)}>
             <img src={fotoAtiva} className="max-h-full max-w-full object-contain drop-shadow-2xl select-none" alt="Produto" />
           </div>
           
           {fotos.length > 1 && (
-            <div className="flex flex-nowrap gap-4 mt-4 p-3 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth">
+            /* AJUSTE DAS MINIATURAS: Adicionado pb-2 para garantir espaço para a barra de scroll e alinhamento central */
+            <div className="flex flex-nowrap gap-4 mt-3 px-2 pb-2 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth items-center justify-start sm:justify-center">
               {fotos.map((url, i) => (
-                /* CORREÇÃO APLICADA: Forçado w-14 h-14 fixos com flex-shrink-0 e p-1 interno no botão para criar uma área de respiro. 
-                   A imagem agora possui w-full h-full e object-contain absoluto para renderizar 100% inteira sem cortes. */
                 <button key={i} onClick={() => setFotoAtiva(url)} className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none snap-center p-1 bg-white ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg pointer-events-none" alt="Miniatura" /></button>
               ))}
             </div>
@@ -434,7 +434,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
           </div>
           <button onClick={onClose} className="mt-8 sm:mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
         </div>
-      </div>
+     </div>
 
       {isZoomed && (
         <div 

@@ -194,13 +194,38 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
   // --- BUSCA PROFUNDA ---
   const produtosFiltrados = useMemo(() => {
     return produtos.filter(p => {
+      const codigo = String(p.codigo_produto || '').trim().toUpperCase();
+  
+      // ============================================================
+      // REGRA DE VISUALIZAÇÃO PARA INGLÊS E ESPANHOL
+      // ============================================================
+      // URBA não deve exibir códigos iniciados por UB ou BO
+      // BROSOL não deve exibir códigos iniciados por UR
+      // Essa regra NÃO é aplicada no português.
+      if (lang === 'EN' || lang === 'ES') {
+        if (marca === 'URBA' && (codigo.startsWith('UB') || codigo.startsWith('BO'))) {
+          return false;
+        }
+  
+        if (marca === 'BROSOL' && codigo.startsWith('UR')) {
+          return false;
+        }
+      }
+  
+      // ============================================================
+      // BUSCA GERAL
+      // ============================================================
       if (!buscaGeral) return true;
+  
       const termo = buscaGeral.toLowerCase().trim();
-      const todosOsDados = Object.values(p.dados).map(v => String(v).toLowerCase().replace(/\s+/g, ' ')).join(' ');
-      const codigo = (p.codigo_produto || "").toLowerCase();
-      return codigo.includes(termo) || todosOsDados.includes(termo);
+  
+      const todosOsDados = Object.values(p.dados)
+        .map(v => String(v).toLowerCase().replace(/\s+/g, ' '))
+        .join(' ');
+  
+      return codigo.toLowerCase().includes(termo) || todosOsDados.includes(termo);
     });
-  }, [produtos, buscaGeral]);
+  }, [produtos, buscaGeral, lang, marca]);
 
   useEffect(() => { buscar(busca, filtrosSelecionados, ""); }, [marca, busca, filtrosSelecionados]);
 

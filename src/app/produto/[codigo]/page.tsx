@@ -40,7 +40,9 @@ return (
 
       /
         ← Voltar ao Catálogo
-      </a>
+    <a
+  href="/"
+  className</a>
 
       <h1 className="text-4xl font-black mb-6">
         {produto.codigo_produto}

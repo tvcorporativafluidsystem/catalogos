@@ -25,50 +25,12 @@ export default function ProdutoPage() {
   }, [codigo]);
 
   if (!produto) {
-    return <div>Carregando...</div>;
-  }
-
-  if (!produto) {
-    return <div>Produto não encontrado.</div>;
-  }
-  
-  const STORAGE_URL =
-    'https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images';
-  
-  const imagemUrl =
-    `${STORAGE_URL}/${produto.marca.toLowerCase()}/${produto.dados['Arquivo Foto']}`;
-  
-  return (
-    <main className="min-h-screen bg-slate-100 p-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8">
-  
-        /
-          ← Voltar ao Catálogo
-        </a>
-  
-        <h1 className="text-4xl font-black mb-6">
-          {produto.codigo_produto}
-        </h1>
-  
-        <div className="flex justify-center mb-8">
-          <img
-               </div>
-  
-        <div className="space-y-4">
-          {Object.entries(produto.dados).map(([campo, valor]) => {
-            if (!valor || campo === 'Arquivo Foto') {
-              return null;
-            }
-  
-            return (
-              <div key={campo}>
-                <strong>{campo}</strong>
-                <div>{String(valor)}</div>
-              </div>
-            );
-          })}
-        </div>
-  
+    return (
+      <div>
+        <h1>{produto.codigo_produto}</h1>
+    
+        <pre>
+          {JSON.stringify(produto.dados, null, 2)}
+        </pre>
       </div>
-    </main>
-  );
+    );

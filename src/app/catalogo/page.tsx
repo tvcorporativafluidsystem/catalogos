@@ -1,5 +1,4 @@
 'use client';
-import QRCode from 'react-qr-code';
 import { useState, useEffect, useMemo } from 'react';
 import { useCatalog } from '../../hooks/useCatalog';
 import { useRouter } from 'next/navigation';
@@ -195,38 +194,13 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
   // --- BUSCA PROFUNDA ---
   const produtosFiltrados = useMemo(() => {
     return produtos.filter(p => {
-      const codigo = String(p.codigo_produto || '').trim().toUpperCase();
-  
-      // ============================================================
-      // REGRA DE VISUALIZAÇÃO PARA INGLÊS E ESPANHOL
-      // ============================================================
-      // URBA não deve exibir códigos iniciados por UB ou BO
-      // BROSOL não deve exibir códigos iniciados por UR
-      // Essa regra NÃO é aplicada no português.
-      if (lang === 'EN' || lang === 'ES') {
-        if (marca === 'URBA' && (codigo.startsWith('UB') || codigo.startsWith('BO'))) {
-          return false;
-        }
-  
-        if (marca === 'BROSOL' && codigo.startsWith('UR')) {
-          return false;
-        }
-      }
-  
-      // ============================================================
-      // BUSCA GERAL
-      // ============================================================
       if (!buscaGeral) return true;
-  
       const termo = buscaGeral.toLowerCase().trim();
-  
-      const todosOsDados = Object.values(p.dados)
-        .map(v => String(v).toLowerCase().replace(/\s+/g, ' '))
-        .join(' ');
-  
-      return codigo.toLowerCase().includes(termo) || todosOsDados.includes(termo);
+      const todosOsDados = Object.values(p.dados).map(v => String(v).toLowerCase().replace(/\s+/g, ' ')).join(' ');
+      const codigo = (p.codigo_produto || "").toLowerCase();
+      return codigo.includes(termo) || todosOsDados.includes(termo);
     });
-  }, [produtos, buscaGeral, lang, marca]);
+  }, [produtos, buscaGeral]);
 
   useEffect(() => { buscar(busca, filtrosSelecionados, ""); }, [marca, busca, filtrosSelecionados]);
 
@@ -366,32 +340,9 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
 function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, terms, lang }: any) {
   const [fotos, setFotos] = useState<string[]>([]);
-const [fotoAtiva, setFotoAtiva] = useState('');
-const [isZoomed, setIsZoomed] = useState(false);
-const [mostrarQR, setMostrarQR] = useState(false);
-const [touchStart, setTouchStart] = useState<number | null>(null);
-
-  const productUrl =
-  typeof window !== 'undefined'
-    ? `${window.location.origin}/produto/${produto.codigo_produto}`
-    : '';
-
-const compartilharProduto = async () => {
-  try {
-    if (navigator.share) {
-      await navigator.share({
-        title: produto.codigo_produto,
-        text: `Confira este produto ${produto.codigo_produto}`,
-        url: productUrl,
-      });
-    } else {
-      await navigator.clipboard.writeText(productUrl);
-      alert('Link copiado para área de transferência');
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
+  const [fotoAtiva, setFotoAtiva] = useState('');
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   useEffect(() => {
     let montado = true;
@@ -456,47 +407,7 @@ const compartilharProduto = async () => {
         <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-14 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900">
           <div className="mb-8 sm:mb-10 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>
-            <div className="flex items-center justify-between gap-4 relative">
-  <h2 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase font-sans leading-none">
-    {produto.codigo_produto}
-  </h2>
-
-  <div className="flex items-center gap-2">
-    <button
-      onClick={compartilharProduto}
-      className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center"
-      title="Compartilhar Produto"
-    >
-      🔗
-    </button>
-
-    <button
-      onClick={() => setMostrarQR(!mostrarQR)}
-      className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center"
-      title="QR Code"
-    >
-      📱
-    </button>
-  </div>
-
-  {mostrarQR && (
-    <div className="absolute top-14 right-0 bg-white p-4 rounded-2xl shadow-2xl border border-slate-200 z-50">
-      <div className="flex flex-col items-center gap-3">
-        <QRCode
-          value={productUrl}
-          size={180}
-        />
-
-        <button
-          onClick={() => setMostrarQR(false)}
-          className="text-xs font-bold text-slate-500 hover:text-slate-900"
-        >
-          Fechar
-        </button>
-      </div>
-    </div>
-  )}
-</div>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase font-sans leading-none">{produto.codigo_produto}</h2>
           </div>
           
           <div className="space-y-6 flex-1 font-sans leading-none sm:overflow-y-auto pr-0 sm:pr-4 custom-scrollbar text-slate-900">
@@ -521,7 +432,7 @@ const compartilharProduto = async () => {
              );
             })}
           </div>
-                    <button onClick={onClose} className="mt-8 sm:mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
+          <button onClick={onClose} className="mt-8 sm:mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
         </div>
      </div>
 

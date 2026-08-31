@@ -18,12 +18,12 @@ const { data } = await supabase
 .eq('codigo_produto', codigo)
 .single();
 
-```
+
   setProduto(data);
 }
 
 carregar();
-```
+
 
 }, [codigo]);
 
@@ -33,7 +33,6 @@ return <div>Carregando...</div>;
 
 return ( <div className="min-h-screen bg-slate-100 p-6"> <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl p-8">
 
-```
     <a
       href="/catalogo"
       className="inline-block mb-6 text-slate-600 hover:text-slate-900 font-semibold"

@@ -25,4 +25,16 @@ export default function ProdutoPage() {
   }, [codigo]);
 
   if (!produto) {
-    return <div>Carregando
+    return <div>Carregando...</div>;
+  }
+
+  return (
+    <div>
+      <h1>{produto.codigo_produto}</h1>
+
+      <pre>
+        {JSON.stringify(produto.dados, null, 2)}
+      </pre>
+    </div>
+  );
+}

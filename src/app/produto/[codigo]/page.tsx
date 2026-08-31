@@ -18,9 +18,11 @@ export default function ProdutoPage() {
           Produto acessado por QR Code ou compartilhamento.
         </p>
 
-        <Link
-          href="/catalogo"
-          className="inlinediv>
+        /catalogo
+          Abrir Catálogo
+        </Link>
+
+      </div>
     </main>
   );
 }

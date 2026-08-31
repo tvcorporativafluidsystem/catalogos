@@ -48,15 +48,31 @@ export default function ProdutoPage() {
   return (
     <main className="min-h-screen bg-slate-100 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8">
-
-        <h1 className="text-4xl font-black mb-6">
-          {produto.codigo_produto}
-        </h1>
-
+  
+        <a
+          href="/catalogo"
+          className="inline-block mb-6 px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-700 transition"
+  1>
+  
+        <div className="flex justify-center mb-8">
+          <img
+            src={`https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images/${produto.marca.toLowerCase()}/${produto.codigo_     </div>
+  
         <div className="space-y-4">
           {Object.entries(produto.dados).map(([campo, valor]) => {
-            if (!valor) return null;
-
+            if (
+              !valor ||
+              [
+                'Arquivo Foto',
+                'Descrição Inglês',
+                'Descrição Espanhol',
+                'Grupo Inglês',
+                'Grupo Espanhol'
+              ].includes(campo)
+            ) {
+              return null;
+            }
+  
             return (
               <div
                 key={campo}
@@ -65,7 +81,7 @@ export default function ProdutoPage() {
                 <div className="text-xs font-bold uppercase text-slate-400">
                   {campo}
                 </div>
-
+  
                 <div className="mt-1 text-slate-800">
                   {String(valor)}
                 </div>
@@ -73,8 +89,7 @@ export default function ProdutoPage() {
             );
           })}
         </div>
-
+  
       </div>
     </main>
   );
-}

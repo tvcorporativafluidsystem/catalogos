@@ -25,20 +25,4 @@ export default function ProdutoPage() {
   }, [codigo]);
 
   if (!produto) {
-    const STORAGE_URL =
-    'https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images';
-  
-  const imagemUrl =
-    `${STORAGE_URL}/urba/${produto.dados['Arquivo Foto']}`;
-  
-  return (
-    <div>
-      <h1>{produto.codigo_produto}</h1>
-  
-      {imagemUrl}
-  
-      <pre>
-        {JSON.stringify(produto.dados, null, 2)}
-      </pre>
-    </div>
-  );
+    return <div>Carregando

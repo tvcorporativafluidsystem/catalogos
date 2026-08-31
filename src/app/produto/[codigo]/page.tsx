@@ -29,12 +29,46 @@ export default function ProdutoPage() {
   }
 
   return (
-    <div>
-      <h1>{produto.codigo_produto}</h1>
-
-      <pre>
-        {JSON.stringify(produto.dados, null, 2)}
-      </pre>
+    <div className="min-h-screen bg-slate-100 p-6">
+      <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl p-8">
+  
+        <a
+          href="/catalogo"
+          className="inline-block mb-6 text-blue-t-5xl font-black mb-8">
+          {produto.codigo_produto}
+        </h1>
+  
+        <div className="space-y-5">
+          {Object.entries(produto.dados).map(([campo, valor]) => {
+            if (!valor) return null;
+  
+            if (
+              campo === 'Grupo Inglês' ||
+              campo === 'Grupo Espanhol' ||
+              campo === 'Descrição Inglês' ||
+              campo === 'Descrição Espanhol' ||
+              campo === 'Arquivo Foto'
+            ) {
+              return null;
+            }
+  
+            return (
+              <div
+                key={campo}
+                className="border-b border-slate-200 pb-3"
+              >
+                <div className="text-xs uppercase font-black text-slate-500">
+                  {campo}
+                </div>
+  
+                <div className="text-slate-900 font-semibold whitespace-pre-line">
+                  {String(valor)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+  
+      </div>
     </div>
   );
-}

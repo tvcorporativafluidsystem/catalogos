@@ -51,12 +51,15 @@ export default function ProdutoPage() {
   
         <a
           href="/catalogo"
-          className="inline-block mb-6 px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-700 transition"
-  1>
+          className="inline-block mb-6 px-me="text-4xl font-black mb-6">
+          {produto.codigo_produto}
+        </h1>
   
         <div className="flex justify-center mb-8">
           <img
-            src={`https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images/${produto.marca.toLowerCase()}/${produto.codigo_     </div>
+            src={`https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/publicclassName="max-h-[300px] object-contain"
+          />
+        </div>
   
         <div className="space-y-4">
           {Object.entries(produto.dados).map(([campo, valor]) => {
@@ -82,7 +85,7 @@ export default function ProdutoPage() {
                   {campo}
                 </div>
   
-                <div className="mt-1 text-slate-800">
+                <div className="mt-1 text-slate-800 whitespace-pre-line">
                   {String(valor)}
                 </div>
               </div>

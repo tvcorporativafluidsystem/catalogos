@@ -218,39 +218,6 @@ export default function AppContainer() {
   return <CatalogoPage marcaInicial={marcaSelecionada} onBack={() => setView('HOME')} isAdmin={isAdmin} onLogout={handleLogout} t={t} lang={lang} setLang={setLang} terms={dataTerms[lang]} />;
 }
 
-// --- COMPONENTE AUXILIAR PARA IMAGEM DO CARD (RESOLVE O CORTA DA IMAGEM DA BROSOL/URBA) ---
-function CardImage({ marca, codigoProduto, storageUrl }: { marca: string; codigoProduto: string; storageUrl: string }) {
-  const [imgSrc, setImgSrc] = useState<string>('');
-
-  useEffect(() => {
-    let montado = true;
-    const cod = codigoProduto.toLowerCase();
-    const caminhos = ['', '_a', '_b'].map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
-
-    Promise.all(caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null)))
-      .then(res => {
-        if (!montado) return;
-        const encontrada = res.find((u): u is string => u !== null);
-        setImgSrc(encontrada || `${storageUrl}/${marca.toLowerCase()}/${cod}.jpg`);
-      });
-
-    return () => { montado = false; };
-  }, [marca, codigoProduto, storageUrl]);
-
-  return (
-    <img 
-      src={imgSrc} 
-      onError={(e) => {
-        // Fallback de imagem caso ocorra erro ao carregar
-        (e.target as HTMLElement).setAttribute('src', 'https://via.placeholder.com/400x300?text=Sem+Imagem');
-      }} 
-      className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500 pointer-events-none p-2" 
-      loading="lazy" 
-      alt={codigoProduto}
-    />
-  );
-}
-
 function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLang, terms }: any) {
   const [marca, setMarca] = useState<'URBA' | 'BROSOL'>(marcaInicial);
   const [busca, setBusca] = useState(''); 
@@ -269,7 +236,6 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
   const temaAtivo = temas[marca];
 
-  // --- BUSCA PROFUNDA ---
   const produtosFiltrados = useMemo(() => {
     return produtos.filter(p => {
       const codigo = String(p.codigo_produto || '').trim().toUpperCase();
@@ -408,12 +374,17 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
                 return (
                   <div key={p.id} className="bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-slate-100 flex flex-col group overflow-hidden leading-none font-sans">
-                    {/* CONTAINER DA IMAGEM PADRONIZADO E SEM CORTE */}
-                    <div className="w-full aspect-[4/3] bg-slate-50 flex items-center justify-center p-6 relative min-h-[220px] max-h-[260px] overflow-hidden leading-none text-slate-900">
+                    <div className="aspect-[4/3] bg-slate-50 flex items-center justify-center p-8 relative min-h-[220px] leading-none text-slate-900">
                       {p.dados['Lançamento'] === 'Sim' && <span className={`absolute top-6 left-6 text-[10px] font-black px-4 py-1.5 rounded-full z-10 shadow-md uppercase tracking-wider ${temaAtivo.badge} leading-none font-sans`}>{t.launch}</span>}
-                      <CardImage marca={marca} codigoProduto={p.codigo_produto} storageUrl={STORAGE_URL} />
+                      {/* Imagem direta sem overhead de checagens via rede no grid */}
+                      <img 
+                        src={`${STORAGE_URL}/${marca.toLowerCase()}/${p.codigo_produto.toLowerCase()}.jpg`} 
+                        onError={(e) => { (e.target as HTMLElement).setAttribute('src', 'https://via.placeholder.com/400x300?text=Sem+Imagem'); }}
+                        className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" 
+                        loading="lazy" 
+                        alt={p.codigo_produto}
+                      />
                     </div>
-                    
                     <div className="p-8 flex flex-col flex-1 leading-none text-slate-900 font-sans">
                       <span className="text-3xl font-black tracking-tighter mb-1 uppercase font-sans leading-none">{p.codigo_produto}</span>
                       <p className="text-[10px] font-black uppercase tracking-widest mb-4 font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{grupoTraduzido}</p>
@@ -505,26 +476,30 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
       <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto sm:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
         <button onClick={onClose} className="absolute top-6 right-6 z-[110] bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
         
-        <div className="w-full lg:w-1/2 bg-slate-50 p-4 sm:p-8 flex flex-col items-center justify-center h-auto aspect-[4/3] max-h-[42vh] lg:max-h-none lg:h-auto relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        {/* Lado Esquerdo (Imagem) Ajustado para Desktop e Mobile sem cortar as thumbnails */}
+        <div className="w-full lg:w-1/2 bg-slate-50 p-4 sm:p-6 flex flex-col items-center justify-between min-h-[350px] lg:min-h-[500px] lg:h-auto relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           
-          <div className="flex-1 flex items-center justify-center w-full leading-none cursor-pointer max-h-[30vh] lg:max-h-none" onClick={() => setIsZoomed(true)}>
-            <img src={fotoAtiva} className="max-h-full max-w-full object-contain drop-shadow-2xl select-none" alt="Produto" />
+          <div className="flex-1 flex items-center justify-center w-full min-h-0 cursor-pointer p-2" onClick={() => setIsZoomed(true)}>
+            <img src={fotoAtiva} className="max-h-[300px] lg:max-h-[400px] max-w-full object-contain drop-shadow-2xl select-none" alt="Produto" />
           </div>
           
           {fotos.length > 1 && (
-            <div className="flex flex-nowrap gap-4 mt-3 px-2 pb-2 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth items-center justify-start sm:justify-center">
+            <div className="flex flex-nowrap gap-3 mt-auto pt-2 px-2 pb-1 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth items-center justify-start sm:justify-center flex-shrink-0">
               {fotos.map((url, i) => (
-                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none snap-center p-1 bg-white ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg pointer-events-none" alt="Miniatura" /></button>
+                <button key={i} onClick={() => setFotoAtiva(url)} className={`w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 rounded-xl border-2 transition-all leading-none snap-center p-1 bg-white ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}>
+                  <img src={url} className="w-full h-full object-contain bg-white rounded-lg pointer-events-none" alt="Miniatura" />
+                </button>
               ))}
             </div>
           )}
        </div>
 
-        <div className="w-full lg:w-1/2 p-8 sm:p-10 lg:p-14 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900">
-          <div className="mb-8 sm:mb-10 leading-none font-sans">
+        {/* Lado Direito (Detalhes) */}
+        <div className="w-full lg:w-1/2 p-6 sm:p-10 lg:p-12 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900 overflow-hidden">
+          <div className="mb-6 sm:mb-8 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>
             <div className="flex items-center justify-between gap-4 relative">
-              <h2 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase font-sans leading-none">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tighter uppercase font-sans leading-none">
                 {produto.codigo_produto}
               </h2>
 
@@ -566,7 +541,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
             </div>
           </div>
           
-          <div className="space-y-6 flex-1 font-sans leading-none sm:overflow-y-auto pr-0 sm:pr-4 custom-scrollbar text-slate-900">
+          <div className="space-y-5 flex-1 font-sans leading-none overflow-y-auto pr-2 custom-scrollbar text-slate-900">
             {Object.entries(produto.dados).map(([key, value]) => {
               if (!value || ['id', 'Arquivo Foto', 'codigo_produto', 'Lançamento'].includes(key)) return null;
               
@@ -588,7 +563,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
               );
             })}
           </div>
-          <button onClick={onClose} className="mt-8 sm:mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
+          <button onClick={onClose} className="mt-6 sm:mt-8 w-full font-black py-4 sm:py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
         </div>
      </div>
 

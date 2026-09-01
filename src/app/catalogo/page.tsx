@@ -286,7 +286,6 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
   }, [produtos]);
 
   return (
-    /* Removido o bloqueio de altura para a página inteira rolar livremente */
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans antialiased text-slate-900 leading-none">
       
       <header className={`lg:hidden sticky top-0 z-[60] flex items-center justify-between p-4 shadow-xl ${temaAtivo.sidebarBg} leading-none`}>
@@ -298,7 +297,8 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
       {menuAberto && <div className="fixed inset-0 bg-black/70 z-[70] lg:hidden leading-none" onClick={() => setMenuAberto(false)} />}
 
-      <aside className={`fixed lg:relative top-0 z-[80] w-[300px] sm:w-80 shadow-2xl min-h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white leading-none ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      {/* MENU LATERAL RESTAURADO: Fixo na tela no Desktop (lg:sticky top-0 h-screen) com rolagem interna nos filtros */}
+      <aside className={`fixed lg:sticky top-0 z-[80] w-[300px] sm:w-80 shadow-2xl h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white leading-none ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         
         <div className="flex gap-4 mb-6 justify-center">
           {['PT', 'ES', 'EN'].map(l => (
@@ -320,7 +320,7 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
           </div>
        )}
 
-        <div className="flex-1 space-y-6 pr-2 pb-10 leading-none text-white font-sans">
+        <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar pb-10 leading-none text-white font-sans">
           <div className="leading-none">
             <label className="text-[10px] font-black text-white/40 uppercase mb-3 block leading-none tracking-widest font-sans">{t.manufacturer}</label>
             <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/10 leading-none">
@@ -360,8 +360,7 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
         </div>
       </aside>
 
-      {/* ÁREA DOS CARDS - Rolagem de página total e ilimitada */}
-      <main className="flex-1 p-4 lg:p-10 leading-none text-slate-900">
+      <main className="flex-1 p-4 lg:p-10 overflow-y-auto leading-none text-slate-900">
         <div className="max-w-7xl mx-auto leading-none">
           {loading ? (
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse text-slate-900 leading-none">
@@ -413,9 +412,9 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const productUrl =
-  typeof window !== 'undefined'
-    ? `${window.location.origin}/produto/${produto.codigo_produto}`
-    : '';
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/produto/${produto.codigo_produto}`
+      : '';
 
   const compartilharProduto = async () => {
     try {
@@ -474,17 +473,19 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-slate-900/95 backdrop-blur-md leading-none font-sans text-slate-900">
       
-      <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto sm:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
-        <button onClick={onClose} className="absolute top-6 right-6 z-[110] bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
+      {/* ROLAGEM EXCLUSIVA DO MODAL NO MOBILE: Permite rolar toda a tela do celular */}
+      <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
+        <button onClick={onClose} className="fixed sm:absolute top-4 right-4 sm:top-6 sm:right-6 z-[110] bg-slate-100/90 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
         
-        <div className="w-full lg:w-1/2 bg-slate-50 p-4 sm:p-6 flex flex-col items-center justify-between min-h-[350px] lg:min-h-[500px] lg:h-auto relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        {/* Lado da Imagem: Rola junto com a página no celular */}
+        <div className="w-full lg:w-1/2 bg-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           
-          <div className="flex-1 flex items-center justify-center w-full min-h-0 cursor-pointer p-2" onClick={() => setIsZoomed(true)}>
+          <div className="flex items-center justify-center w-full min-h-[250px] max-h-[350px] lg:max-h-[450px] cursor-pointer p-2" onClick={() => setIsZoomed(true)}>
             <img src={fotoAtiva} className="max-h-[300px] lg:max-h-[400px] max-w-full object-contain drop-shadow-2xl select-none" alt="Produto" />
           </div>
           
           {fotos.length > 1 && (
-            <div className="flex flex-nowrap gap-3 mt-auto pt-2 px-2 pb-1 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth items-center justify-start sm:justify-center flex-shrink-0">
+            <div className="flex flex-nowrap gap-3 mt-4 px-2 pb-1 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth items-center justify-start sm:justify-center flex-shrink-0">
               {fotos.map((url, i) => (
                 <button key={i} onClick={() => setFotoAtiva(url)} className={`w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 rounded-xl border-2 transition-all leading-none snap-center p-1 bg-white ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}>
                   <img src={url} className="w-full h-full object-contain bg-white rounded-lg pointer-events-none" alt="Miniatura" />
@@ -492,9 +493,10 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
               ))}
             </div>
           )}
-       </div>
+        </div>
 
-        <div className="w-full lg:w-1/2 p-6 sm:p-10 lg:p-12 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900 overflow-hidden">
+        {/* Lado do Texto: Espaço livre para leitura de toda a informação */}
+        <div className="w-full lg:w-1/2 p-6 sm:p-10 lg:p-12 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900">
           <div className="mb-6 sm:mb-8 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>
             <div className="flex items-center justify-between gap-4 relative">
@@ -540,7 +542,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
             </div>
           </div>
           
-          <div className="space-y-5 flex-1 font-sans leading-none overflow-y-auto pr-2 custom-scrollbar text-slate-900">
+          <div className="space-y-5 flex-1 font-sans leading-none lg:overflow-y-auto pr-2 custom-scrollbar text-slate-900">
             {Object.entries(produto.dados).map(([key, value]) => {
               if (!value || ['id', 'Arquivo Foto', 'codigo_produto', 'Lançamento'].includes(key)) return null;
               
@@ -564,7 +566,7 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
           </div>
           <button onClick={onClose} className="mt-6 sm:mt-8 w-full font-black py-4 sm:py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
         </div>
-     </div>
+      </div>
 
       {isZoomed && (
         <div 

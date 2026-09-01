@@ -236,19 +236,10 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
   const temaAtivo = temas[marca];
 
+  // FILTRAGEM ATUALIZADA: Exibe TODOS os produtos sem restringir por prefixo ao mudar de idioma
   const produtosFiltrados = useMemo(() => {
     return produtos.filter(p => {
       const codigo = String(p.codigo_produto || '').trim().toUpperCase();
-
-      if (lang === 'EN' || lang === 'ES') {
-        if (marca === 'URBA' && (codigo.startsWith('UB') || codigo.startsWith('BO'))) {
-          return false;
-        }
-
-        if (marca === 'BROSOL' && codigo.startsWith('UR')) {
-          return false;
-        }
-      }
 
       if (!buscaGeral) return true;
 
@@ -260,7 +251,7 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
       return codigo.toLowerCase().includes(termo) || todosOsDados.includes(termo);
     });
-  }, [produtos, buscaGeral, lang, marca]);
+  }, [produtos, buscaGeral]);
 
   useEffect(() => { buscar(busca, filtrosSelecionados, ""); }, [marca, busca, filtrosSelecionados]);
 
@@ -410,7 +401,6 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
   const [mostrarQR, setMostrarQR] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
-  // INCLUSÃO DA QUERY PARAMS COM O IDIOMA ATIVO
   const productUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/produto/${produto.codigo_produto}?lang=${lang}`

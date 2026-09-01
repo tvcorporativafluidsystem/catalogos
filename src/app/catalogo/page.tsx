@@ -106,7 +106,7 @@ export default function AppContainer() {
 
   if (view === 'HOME') {
     return (
-      <main className="min-h-screen bg-[#0f172a] flex flex-col justify-between items-center p-6 font-sans overflow-hidden text-white leading-none relative">
+      <main className="min-h-screen bg-[#0f172a] flex flex-col justify-between items-center p-6 font-sans text-white leading-none relative">
         <header className="w-full max-w-7xl flex items-center justify-between z-50">
           <div className="flex gap-4">
             <button 
@@ -286,6 +286,7 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
   }, [produtos]);
 
   return (
+    /* Removido o bloqueio de altura para a página inteira rolar livremente */
     <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans antialiased text-slate-900 leading-none">
       
       <header className={`lg:hidden sticky top-0 z-[60] flex items-center justify-between p-4 shadow-xl ${temaAtivo.sidebarBg} leading-none`}>
@@ -297,7 +298,7 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
       {menuAberto && <div className="fixed inset-0 bg-black/70 z-[70] lg:hidden leading-none" onClick={() => setMenuAberto(false)} />}
 
-      <aside className={`fixed lg:sticky top-0 z-[80] w-[300px] sm:w-80 shadow-2xl h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white leading-none ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:relative top-0 z-[80] w-[300px] sm:w-80 shadow-2xl min-h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white leading-none ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         
         <div className="flex gap-4 mb-6 justify-center">
           {['PT', 'ES', 'EN'].map(l => (
@@ -319,7 +320,7 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
           </div>
        )}
 
-        <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar pb-10 leading-none text-white font-sans">
+        <div className="flex-1 space-y-6 pr-2 pb-10 leading-none text-white font-sans">
           <div className="leading-none">
             <label className="text-[10px] font-black text-white/40 uppercase mb-3 block leading-none tracking-widest font-sans">{t.manufacturer}</label>
             <div className="grid grid-cols-2 gap-2 bg-black/30 p-1 rounded-xl border border-white/10 leading-none">
@@ -359,7 +360,8 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
         </div>
       </aside>
 
-      <main className="flex-1 p-4 lg:p-10 overflow-y-auto leading-none text-slate-900">
+      {/* ÁREA DOS CARDS - Rolagem de página total e ilimitada */}
+      <main className="flex-1 p-4 lg:p-10 leading-none text-slate-900">
         <div className="max-w-7xl mx-auto leading-none">
           {loading ? (
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse text-slate-900 leading-none">
@@ -376,7 +378,6 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
                   <div key={p.id} className="bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-slate-100 flex flex-col group overflow-hidden leading-none font-sans">
                     <div className="aspect-[4/3] bg-slate-50 flex items-center justify-center p-8 relative min-h-[220px] leading-none text-slate-900">
                       {p.dados['Lançamento'] === 'Sim' && <span className={`absolute top-6 left-6 text-[10px] font-black px-4 py-1.5 rounded-full z-10 shadow-md uppercase tracking-wider ${temaAtivo.badge} leading-none font-sans`}>{t.launch}</span>}
-                      {/* Imagem direta sem overhead de checagens via rede no grid */}
                       <img 
                         src={`${STORAGE_URL}/${marca.toLowerCase()}/${p.codigo_produto.toLowerCase()}.jpg`} 
                         onError={(e) => { (e.target as HTMLElement).setAttribute('src', 'https://via.placeholder.com/400x300?text=Sem+Imagem'); }}
@@ -476,7 +477,6 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
       <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto sm:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
         <button onClick={onClose} className="absolute top-6 right-6 z-[110] bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
         
-        {/* Lado Esquerdo (Imagem) Ajustado para Desktop e Mobile sem cortar as thumbnails */}
         <div className="w-full lg:w-1/2 bg-slate-50 p-4 sm:p-6 flex flex-col items-center justify-between min-h-[350px] lg:min-h-[500px] lg:h-auto relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           
           <div className="flex-1 flex items-center justify-center w-full min-h-0 cursor-pointer p-2" onClick={() => setIsZoomed(true)}>
@@ -494,7 +494,6 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
           )}
        </div>
 
-        {/* Lado Direito (Detalhes) */}
         <div className="w-full lg:w-1/2 p-6 sm:p-10 lg:p-12 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900 overflow-hidden">
           <div className="mb-6 sm:mb-8 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>

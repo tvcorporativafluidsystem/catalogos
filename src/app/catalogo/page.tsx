@@ -297,7 +297,6 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
       {menuAberto && <div className="fixed inset-0 bg-black/70 z-[70] lg:hidden leading-none" onClick={() => setMenuAberto(false)} />}
 
-      {/* MENU LATERAL RESTAURADO: Fixo na tela no Desktop (lg:sticky top-0 h-screen) com rolagem interna nos filtros */}
       <aside className={`fixed lg:sticky top-0 z-[80] w-[300px] sm:w-80 shadow-2xl h-screen p-6 flex flex-col transition-all duration-500 ${temaAtivo.sidebarBg} text-white leading-none ${menuAberto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         
         <div className="flex gap-4 mb-6 justify-center">
@@ -411,9 +410,10 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
   const [mostrarQR, setMostrarQR] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
+  // INCLUSÃO DA QUERY PARAMS COM O IDIOMA ATIVO
   const productUrl =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/produto/${produto.codigo_produto}`
+      ? `${window.location.origin}/produto/${produto.codigo_produto}?lang=${lang}`
       : '';
 
   const compartilharProduto = async () => {
@@ -473,13 +473,10 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 bg-slate-900/95 backdrop-blur-md leading-none font-sans text-slate-900">
       
-      {/* ROLAGEM EXCLUSIVA DO MODAL NO MOBILE: Permite rolar toda a tela do celular */}
       <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
         <button onClick={onClose} className="fixed sm:absolute top-4 right-4 sm:top-6 sm:right-6 z-[110] bg-slate-100/90 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
         
-        {/* Lado da Imagem: Rola junto com a página no celular */}
         <div className="w-full lg:w-1/2 bg-slate-50 p-6 sm:p-8 flex flex-col items-center justify-center relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          
           <div className="flex items-center justify-center w-full min-h-[250px] max-h-[350px] lg:max-h-[450px] cursor-pointer p-2" onClick={() => setIsZoomed(true)}>
             <img src={fotoAtiva} className="max-h-[300px] lg:max-h-[400px] max-w-full object-contain drop-shadow-2xl select-none" alt="Produto" />
           </div>
@@ -495,7 +492,6 @@ function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, term
           )}
         </div>
 
-        {/* Lado do Texto: Espaço livre para leitura de toda a informação */}
         <div className="w-full lg:w-1/2 p-6 sm:p-10 lg:p-12 bg-white flex flex-col flex-1 leading-none font-sans text-slate-900">
           <div className="mb-6 sm:mb-8 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>

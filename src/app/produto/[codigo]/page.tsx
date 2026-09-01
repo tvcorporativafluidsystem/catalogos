@@ -1,14 +1,33 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 
 const STORAGE_URL = 'https://agygfdeizpfcdzxpukpx.supabase.co/storage/v1/object/public/catalog-images';
 
+// Mapeamento de traduções dos títulos dos campos
+const dataTerms: any = {
+  PT: { "Grupo": "Linha (Grupo)", "Veículos": "Veículo / Aplicação", "Números Referência": "Referências", "Observação": "Observação", "Motor": "Motor", "Descrição Produto": "Descrição do Produto" },
+  ES: { "Grupo": "Línea (Grupo)", "Veículos": "Vehículo / Aplicación", "Números Referência": "Referencias", "Observação": "Observación", "Motor": "Motor", "Descrição Produto": "Descripción del Producto" },
+  EN: { "Grupo": "Line (Group)", "Veículos": "Vehicle / Application", "Números Referência": "Cross References", "Observação": "Note", "Motor": "Engine", "Descrição Produto": "Product Description" }
+};
+
+const backTranslations: any = {
+  PT: "← Voltar ao Catálogo",
+  ES: "← Volver al Catálogo",
+  EN: "← Back to Catalog"
+};
+
 export default function ProdutoPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const codigo = String(params.codigo);
+
+  // Detecta o idioma vindo na URL (?lang=EN) ou define PT por padrão
+  const langQuery = (searchParams.get('lang') || 'PT').toUpperCase();
+  const lang = ['PT', 'ES', 'EN'].includes(langQuery) ? langQuery : 'PT';
+  const terms = dataTerms[lang];
 
   const [produto, setProduto] = useState<any>(null);
   const [fotos, setFotos] = useState<string[]>([]);
@@ -77,7 +96,7 @@ export default function ProdutoPage() {
             href="/catalogo"
             className="inline-block text-slate-600 hover:text-slate-900 font-semibold transition-colors"
           >
-            ← Voltar ao Catálogo
+            {backTranslations[lang]}
           </a>
         </div>
 
@@ -138,14 +157,26 @@ export default function ProdutoPage() {
                   return null;
                 }
 
+                let valorExibido = String(valor);
+
+                // Tradução dinâmica dos valores de Grupo e Descrição
+                if (campo === 'Grupo') {
+                  if (lang === 'EN' && produto.dados['Grupo Inglês']) valorExibido = produto.dados['Grupo Inglês'];
+                  if (lang === 'ES' && produto.dados['Grupo Espanhol']) valorExibido = produto.dados['Grupo Espanhol'];
+                }
+                if (campo === 'Descrição Produto') {
+                  if (lang === 'EN' && produto.dados['Descrição Inglês']) valorExibido = produto.dados['Descrição Inglês'];
+                  if (lang === 'ES' && produto.dados['Descrição Espanhol']) valorExibido = produto.dados['Descrição Espanhol'];
+                }
+
                 return (
                   <div key={campo} className="border-b border-slate-100 pb-3">
                     <div className="text-[10px] uppercase font-black tracking-widest text-slate-400">
-                      {campo}
+                      {terms[campo] || campo}
                     </div>
 
                     <div className="text-slate-800 font-bold whitespace-pre-line leading-snug mt-0.5">
-                      {String(valor)}
+                      {valorExibido}
                     </div>
                   </div>
                 );

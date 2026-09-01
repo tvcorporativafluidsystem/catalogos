@@ -71,7 +71,7 @@ const translations = {
   }
 };
 
-// --- 2. MAPEAMENTO DE LABELS DO BANCO (CORRIGIDO) ---
+// --- 2. MAPEAMENTO DE LABELS DO BANCO ---
 const dataTerms: any = {
   PT: { "Grupo": "Linha (Grupo)", "Veículos": "Veículo / Aplicação", "Números Referência": "Referências", "Observação": "Observação", "Motor": "Motor" },
   ES: { "Grupo": "Línea (Grupo)", "Veículos": "Vehículo / Aplicación", "Números Referência": "Referencias", "Observação": "Observación", "Motor": "Motor" },
@@ -107,8 +107,6 @@ export default function AppContainer() {
   if (view === 'HOME') {
     return (
       <main className="min-h-screen bg-[#0f172a] flex flex-col justify-between items-center p-6 font-sans overflow-hidden text-white leading-none relative">
-        
-        {/* Cabeçalho superior flexível para evitar sobreposição */}
         <header className="w-full max-w-7xl flex items-center justify-between z-50">
           <div className="flex gap-4">
             <button 
@@ -144,7 +142,6 @@ export default function AppContainer() {
           </button>
         </header>
 
-        {/* Conteúdo Central */}
         <div className="flex-1 flex flex-col items-center justify-center w-full my-8 z-10">
           <div className="text-center mb-8 md:mb-12">
             <h1 className="text-white text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-tighter leading-tight mb-3 font-sans">
@@ -166,7 +163,6 @@ export default function AppContainer() {
             )}
           </div>
 
-          {/* Cards das Marcas */}
           <div className="flex flex-col md:flex-row gap-6 md:gap-10 max-w-6xl w-full justify-center items-center px-4">
             <div 
               onClick={() => { setMarcaSelecionada('URBA'); setView('CATALOGO'); }} 
@@ -202,7 +198,6 @@ export default function AppContainer() {
           </div>
         </div>
 
-        {/* Modal de Login */}
         {showLoginModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md leading-none">
             <div className="bg-[#1e293b] border border-white/10 p-10 rounded-[2.5rem] w-full max-w-md shadow-2xl leading-none text-white font-sans">
@@ -221,6 +216,39 @@ export default function AppContainer() {
   }
 
   return <CatalogoPage marcaInicial={marcaSelecionada} onBack={() => setView('HOME')} isAdmin={isAdmin} onLogout={handleLogout} t={t} lang={lang} setLang={setLang} terms={dataTerms[lang]} />;
+}
+
+// --- COMPONENTE AUXILIAR PARA IMAGEM DO CARD (RESOLVE O CORTA DA IMAGEM DA BROSOL/URBA) ---
+function CardImage({ marca, codigoProduto, storageUrl }: { marca: string; codigoProduto: string; storageUrl: string }) {
+  const [imgSrc, setImgSrc] = useState<string>('');
+
+  useEffect(() => {
+    let montado = true;
+    const cod = codigoProduto.toLowerCase();
+    const caminhos = ['', '_a', '_b'].map(s => `${storageUrl}/${marca.toLowerCase()}/${cod}${s}.jpg`);
+
+    Promise.all(caminhos.map(url => fetch(url, { method: 'HEAD' }).then(res => res.ok ? url : null).catch(() => null)))
+      .then(res => {
+        if (!montado) return;
+        const encontrada = res.find((u): u is string => u !== null);
+        setImgSrc(encontrada || `${storageUrl}/${marca.toLowerCase()}/${cod}.jpg`);
+      });
+
+    return () => { montado = false; };
+  }, [marca, codigoProduto, storageUrl]);
+
+  return (
+    <img 
+      src={imgSrc} 
+      onError={(e) => {
+        // Fallback de imagem caso ocorra erro ao carregar
+        (e.target as HTMLElement).setAttribute('src', 'https://via.placeholder.com/400x300?text=Sem+Imagem');
+      }} 
+      className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500 pointer-events-none p-2" 
+      loading="lazy" 
+      alt={codigoProduto}
+    />
+  );
 }
 
 function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLang, terms }: any) {
@@ -245,34 +273,25 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
   const produtosFiltrados = useMemo(() => {
     return produtos.filter(p => {
       const codigo = String(p.codigo_produto || '').trim().toUpperCase();
-  
-      // ============================================================
-      // REGRA DE VISUALIZAÇÃO PARA INGLÊS E ESPANHOL
-      // ============================================================
-      // URBA não deve exibir códigos iniciados por UB ou BO
-      // BROSOL não deve exibir códigos iniciados por UR
-      // Essa regra NÃO é aplicada no português.
+
       if (lang === 'EN' || lang === 'ES') {
         if (marca === 'URBA' && (codigo.startsWith('UB') || codigo.startsWith('BO'))) {
           return false;
         }
-  
+
         if (marca === 'BROSOL' && codigo.startsWith('UR')) {
           return false;
         }
       }
-  
-      // ============================================================
-      // BUSCA GERAL
-      // ============================================================
+
       if (!buscaGeral) return true;
-  
+
       const termo = buscaGeral.toLowerCase().trim();
-  
+
       const todosOsDados = Object.values(p.dados)
         .map(v => String(v).toLowerCase().replace(/\s+/g, ' '))
         .join(' ');
-  
+
       return codigo.toLowerCase().includes(termo) || todosOsDados.includes(termo);
     });
   }, [produtos, buscaGeral, lang, marca]);
@@ -383,17 +402,18 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 text-slate-900 leading-none">
               {produtosFiltrados.map(p => {
-                // --- TRADUÇÃO DO CONTEÚDO DOS GRIDS (NOVA ADIÇÃO) ---
                 let grupoTraduzido = p.dados['Grupo'];
                 if (lang === 'EN' && p.dados['Grupo Inglês']) grupoTraduzido = p.dados['Grupo Inglês'];
                 if (lang === 'ES' && p.dados['Grupo Espanhol']) grupoTraduzido = p.dados['Grupo Espanhol'];
 
                 return (
                   <div key={p.id} className="bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all border border-slate-100 flex flex-col group overflow-hidden leading-none font-sans">
-                    <div className="aspect-[4/3] bg-slate-50 flex items-center justify-center p-8 relative min-h-[220px] leading-none text-slate-900">
+                    {/* CONTAINER DA IMAGEM PADRONIZADO E SEM CORTE */}
+                    <div className="w-full aspect-[4/3] bg-slate-50 flex items-center justify-center p-6 relative min-h-[220px] max-h-[260px] overflow-hidden leading-none text-slate-900">
                       {p.dados['Lançamento'] === 'Sim' && <span className={`absolute top-6 left-6 text-[10px] font-black px-4 py-1.5 rounded-full z-10 shadow-md uppercase tracking-wider ${temaAtivo.badge} leading-none font-sans`}>{t.launch}</span>}
-                      <img src={`${STORAGE_URL}/${marca.toLowerCase()}/${p.codigo_produto.toLowerCase()}.jpg`} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" loading="eager" />
+                      <CardImage marca={marca} codigoProduto={p.codigo_produto} storageUrl={STORAGE_URL} />
                     </div>
+                    
                     <div className="p-8 flex flex-col flex-1 leading-none text-slate-900 font-sans">
                       <span className="text-3xl font-black tracking-tighter mb-1 uppercase font-sans leading-none">{p.codigo_produto}</span>
                       <p className="text-[10px] font-black uppercase tracking-widest mb-4 font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{grupoTraduzido}</p>
@@ -415,32 +435,32 @@ function CatalogoPage({ marcaInicial, onBack, isAdmin, onLogout, t, lang, setLan
 
 function ModalDetalhes({ produto, marca, storageUrl, onClose, temaAtivo, t, terms, lang }: any) {
   const [fotos, setFotos] = useState<string[]>([]);
-const [fotoAtiva, setFotoAtiva] = useState('');
-const [isZoomed, setIsZoomed] = useState(false);
-const [mostrarQR, setMostrarQR] = useState(false);
-const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [fotoAtiva, setFotoAtiva] = useState('');
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [mostrarQR, setMostrarQR] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const productUrl =
   typeof window !== 'undefined'
     ? `${window.location.origin}/produto/${produto.codigo_produto}`
     : '';
 
-const compartilharProduto = async () => {
-  try {
-    if (navigator.share) {
-      await navigator.share({
-        title: produto.codigo_produto,
-        text: `Confira este produto ${produto.codigo_produto}`,
-        url: productUrl,
-      });
-    } else {
-      await navigator.clipboard.writeText(productUrl);
-      alert('Link copiado para área de transferência');
+  const compartilharProduto = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: produto.codigo_produto,
+          text: `Confira este produto ${produto.codigo_produto}`,
+          url: productUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(productUrl);
+        alert('Link copiado para área de transferência');
+      }
+    } catch (error) {
+      console.log(error);
     }
-  } catch (error) {
-    console.log(error);
-  }
-};
+  };
 
   useEffect(() => {
     let montado = true;
@@ -485,7 +505,6 @@ const compartilharProduto = async () => {
       <div className="relative bg-white w-full h-full sm:h-auto max-h-[100vh] sm:max-h-[95vh] lg:max-w-6xl lg:rounded-[3rem] shadow-2xl overflow-y-auto sm:overflow-hidden flex flex-col lg:flex-row border border-slate-100 leading-none">
         <button onClick={onClose} className="absolute top-6 right-6 z-[110] bg-slate-100 w-12 h-12 rounded-full font-bold shadow-md hover:bg-red-500 hover:text-white transition-all flex items-center justify-center leading-none text-slate-950">✕</button>
         
-        {/* CORREÇÃO DO BLOCO DA IMAGEM: Modificado de altura fixa em px para aspect-ratio e limite percentual de tela (max-h-[30vh] ou max-h-[42vh] somando as thumbs). Isso impede que a imagem "coma" o espaço das miniaturas */}
         <div className="w-full lg:w-1/2 bg-slate-50 p-4 sm:p-8 flex flex-col items-center justify-center h-auto aspect-[4/3] max-h-[42vh] lg:max-h-none lg:h-auto relative leading-none flex-shrink-0" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           
           <div className="flex-1 flex items-center justify-center w-full leading-none cursor-pointer max-h-[30vh] lg:max-h-none" onClick={() => setIsZoomed(true)}>
@@ -493,7 +512,6 @@ const compartilharProduto = async () => {
           </div>
           
           {fotos.length > 1 && (
-            /* AJUSTE DAS MINIATURAS: Adicionado pb-2 para garantir espaço para a barra de scroll e alinhamento central */
             <div className="flex flex-nowrap gap-4 mt-3 px-2 pb-2 overflow-x-auto w-full max-w-full custom-scrollbar leading-none font-sans snap-x scroll-smooth items-center justify-start sm:justify-center">
               {fotos.map((url, i) => (
                 <button key={i} onClick={() => setFotoAtiva(url)} className={`w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl border-2 transition-all leading-none snap-center p-1 bg-white ${fotoAtiva === url ? 'scale-105 shadow-md border-slate-900' : 'opacity-40 border-transparent'}`}><img src={url} className="w-full h-full object-contain bg-white rounded-lg pointer-events-none" alt="Miniatura" /></button>
@@ -506,46 +524,46 @@ const compartilharProduto = async () => {
           <div className="mb-8 sm:mb-10 leading-none font-sans">
             <span className="font-black text-xs tracking-widest uppercase mb-2 block font-sans leading-none" style={{ color: temaAtivo.accentColor }}>{marca}</span>
             <div className="flex items-center justify-between gap-4 relative">
-  <h2 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase font-sans leading-none">
-    {produto.codigo_produto}
-  </h2>
+              <h2 className="text-4xl sm:text-5xl font-black tracking-tighter uppercase font-sans leading-none">
+                {produto.codigo_produto}
+              </h2>
 
-  <div className="flex items-center gap-2">
-    <button
-      onClick={compartilharProduto}
-      className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center"
-      title="Compartilhar Produto"
-    >
-      🔗
-    </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={compartilharProduto}
+                  className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center"
+                  title="Compartilhar Produto"
+                >
+                  🔗
+                </button>
 
-    <button
-      onClick={() => setMostrarQR(!mostrarQR)}
-      className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center"
-      title="QR Code"
-    >
-      📱
-    </button>
-  </div>
+                <button
+                  onClick={() => setMostrarQR(!mostrarQR)}
+                  className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center"
+                  title="QR Code"
+                >
+                  📱
+                </button>
+              </div>
 
-  {mostrarQR && (
-    <div className="absolute top-14 right-0 bg-white p-4 rounded-2xl shadow-2xl border border-slate-200 z-50">
-      <div className="flex flex-col items-center gap-3">
-        <QRCode
-          value={productUrl}
-          size={180}
-        />
+              {mostrarQR && (
+                <div className="absolute top-14 right-0 bg-white p-4 rounded-2xl shadow-2xl border border-slate-200 z-50">
+                  <div className="flex flex-col items-center gap-3">
+                    <QRCode
+                      value={productUrl}
+                      size={180}
+                    />
 
-        <button
-          onClick={() => setMostrarQR(false)}
-          className="text-xs font-bold text-slate-500 hover:text-slate-900"
-        >
-          Fechar
-        </button>
-      </div>
-    </div>
-  )}
-</div>
+                    <button
+                      onClick={() => setMostrarQR(false)}
+                      className="text-xs font-bold text-slate-500 hover:text-slate-900"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="space-y-6 flex-1 font-sans leading-none sm:overflow-y-auto pr-0 sm:pr-4 custom-scrollbar text-slate-900">
@@ -567,10 +585,10 @@ const compartilharProduto = async () => {
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-sans leading-none">{terms[key] || key}</span>
                   <p className="text-slate-800 font-bold leading-tight mt-1 font-sans leading-none whitespace-pre-line">{valorExibido}</p>
                 </div>
-             );
+              );
             })}
           </div>
-                    <button onClick={onClose} className="mt-8 sm:mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
+          <button onClick={onClose} className="mt-8 sm:mt-12 w-full font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 bg-slate-900 text-white uppercase text-xs font-sans leading-none flex-shrink-0">{t.backButton}</button>
         </div>
      </div>
 
